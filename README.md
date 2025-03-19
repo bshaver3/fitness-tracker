@@ -1,1 +1,2 @@
-"# INSTexercise" 
+# fitness-tracker
+Fitness App
