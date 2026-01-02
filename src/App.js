@@ -16,17 +16,17 @@ function App() {  // The main part of your app, like the control room
     fetchInsights();  // Go get the insights
   }, []);  // Empty "watch list" means it only runs once when the app loads
 
-  const fetchWorkouts = () => {  // A little helper to grab workouts
-    axios.get('http://localhost:8000/workouts')  // Ask the backend for the workout list
-      .then(response => setWorkouts(response.data))  // Put the list in the workouts box
-      .catch(error => console.error('Error fetching workouts:', error));  // Yell if something goes wrong
-  };
+  // const fetchWorkouts = () => {  // A little helper to grab workouts
+  //   axios.get('http://localhost:8000/workouts')  // Ask the backend for the workout list
+  //     .then(response => setWorkouts(response.data))  // Put the list in the workouts box
+  //     .catch(error => console.error('Error fetching workouts:', error));  // Yell if something goes wrong
+  // };
 
-  const fetchInsights = () => {  // A helper to grab insights
-    //axios.get('http://localhost:8000/insights')  // Ask the backend for insights
-      .then(response => setInsights(response.data))  // Put the insights in the insights box
-      .catch(error => console.error('Error fetching insights:', error));  // Yell if something’s off
-  };
+  // const fetchInsights = () => {  // A helper to grab insights
+  //   axios.get('http://localhost:8000/insights')  // Ask the backend for insights
+  //     .then(response => setInsights(response.data))  // Put the insights in the insights box
+  //     .catch(error => console.error('Error fetching insights:', error));  // Yell if something’s off
+  // };
 
   const handleChange = (e) => {  // A helper to watch what the user types
     setFormData({ ...formData, [e.target.name]: e.target.value });  // Update the form box with new typing
@@ -94,6 +94,5 @@ function App() {  // The main part of your app, like the control room
       </div>
     </div>
   );
-}
 
 export default App;  // Send this app to be used by React
