@@ -1,0 +1,17 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - cd frontend  # Replace with your subfolder name
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: frontend/build  # Adjust to subfolder/build
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
