@@ -16,7 +16,8 @@
         "amplifyhosting": {
           "appId": "d3czb7uix4xpb0",
           "type": "manual"
-        }
+        },
+        "S3AndCloudFront": {}
       }
     }
   }
