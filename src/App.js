@@ -94,5 +94,6 @@ function App() {  // The main part of your app, like the control room
       </div>
     </div>
   );
+}
 
 export default App;  // Send this app to be used by React
