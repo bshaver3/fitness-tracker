@@ -3,7 +3,6 @@ frontend:
   phases:
     preBuild:
       commands:
-        - cd frontend  # Replace with your subfolder name
         - npm ci
     build:
       commands:
