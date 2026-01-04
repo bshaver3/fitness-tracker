@@ -17,13 +17,13 @@ function App() {  // The main part of your app, like the control room
   }, []);  // Empty "watch list" means it only runs once when the app loads
 
   const fetchWorkouts = () => {  // A little helper to grab workouts
-    axios.get('https://fitness-tracker-api.eba-pptaezmv.us-east-1.elasticbeanstalk.com/workouts')  // Ask the backend for the workout list
+    axios.get('http://fitness-tracker-api.eba-pptaezmv.us-east-1.elasticbeanstalk.com/workouts')  // Ask the backend for the workout list
       .then(response => setWorkouts(response.data))  // Put the list in the workouts box
       .catch(error => console.error('Error fetching workouts:', error));  // Yell if something goes wrong
   };
 
   const fetchInsights = () => {  // A helper to grab insights
-    axios.get('https://fitness-tracker-api.eba-pptaezmv.us-east-1.elasticbeanstalk.com/insights')  // Ask the backend for insights
+    axios.get('http://fitness-tracker-api.eba-pptaezmv.us-east-1.elasticbeanstalk.com/insights')  // Ask the backend for insights
       .then(response => setInsights(response.data))  // Put the insights in the insights box
       .catch(error => console.error('Error fetching insights:', error));  // Yell if something’s off
   };
@@ -34,7 +34,7 @@ function App() {  // The main part of your app, like the control room
 
   const handleSubmit = (e) => {  // A helper for when the user clicks "Log Workout"
     e.preventDefault();  // Stop the page from refreshing (normal form behavior)
-    axios.post('https://fitness-tracker-api.eba-pptaezmv.us-east-1.elasticbeanstalk.com/workouts', {  // Send the workout to the backend
+    axios.post('http://fitness-tracker-api.eba-pptaezmv.us-east-1.elasticbeanstalk.com/workouts', {  // Send the workout to the backend
       type: formData.type,
       duration: parseInt(formData.duration),  // Turn text into a number
       calories: parseInt(formData.calories)  // Turn text into a number
