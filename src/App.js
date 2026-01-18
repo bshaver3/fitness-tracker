@@ -81,6 +81,29 @@ function App() {  // The main part of your app, like the control room
         />
         <button type="submit">Log Workout</button>  // A button to send the form
       </form>
+       <form onSubmit={handleSubmit}>  // A form where users type stuff
+        <input  // A box for the workout type
+          name="type"
+          value={formData.type}  // Shows what’s in the form box
+          onChange={handleChange}  // Updates the box when typing
+          placeholder="Workout Type"  // Hint text when empty
+        />
+        <input  // A box for duration
+          name="duration"
+          type="number"  // Only allows numbers
+          value={formData.duration}
+          onChange={handleChange}
+          placeholder="Duration (min)"
+        />
+        <input  // A box for calories
+          name="calories"
+          type="number"
+          value={formData.calories}
+          onChange={handleChange}
+          placeholder="Calories"
+        />
+        <button type="submit">Log Workout</button>  // A button to send the form
+      </form>
       <h2>Your Workouts</h2>  // A title for the workout list
       <ul>  // A list to show workouts
         {workouts.map((w, idx) => (  // Loop through the workouts box
