@@ -88,7 +88,7 @@ function App() {  // The main part of your app, like the control room
           onChange={handleChange}  // Updates the box when typing
           placeholder="Workout Name"  // Hint text when empty
         />
-        <button type="delete">Delete Workout</button>
+        <button style={{ backgroundColor: 'red', color: 'white' }} >Delete Workout</button>
       </form>
       <h2>Your Workouts</h2>
       <ul>
