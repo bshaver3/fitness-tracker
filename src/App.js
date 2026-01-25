@@ -46,6 +46,18 @@ function App() {  // The main part of your app, like the control room
       })
       .catch(error => console.error('Error logging workout:', error));  // Yell if it fails
   };
+  const handleDelete = (e) => {  // A helper for when the user clicks "Delete Workout"
+    e.preventDefault();  // Stop the page from refreshing (normal form behavior)
+    axios.delete('https://7pybxmlcvh.execute-api.us-east-1.amazonaws.com/workouts', {  // Send the workout to the backend
+      type: formData.type,
+    })
+      .then(() => {  // If it works...
+        setFormData({ type: '', duration: '', calories: '' });  // Clear the form box
+        fetchWorkouts();  // Get the updated workout list
+        fetchInsights();  // Get the updated insights
+      })
+      .catch(error => console.error('Error deleting workout:', error));  // Yell if it fails
+  };
   const chartData = {
     labels: workouts.map(w => w.type),  // X-axis: workout types like "Cardio"
     datasets: [{
@@ -81,7 +93,7 @@ function App() {  // The main part of your app, like the control room
         />
         <button type="submit">Log Workout</button> 
       </form>
-       <form onSubmit={handleSubmit}>
+       <form onSubmit={handleDelete}>
         <input  // A box for the workout type
           name="type"
           value={formData.type}  // Shows what’s in the form box
