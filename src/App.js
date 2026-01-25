@@ -56,9 +56,9 @@ function App() {  // The main part of your app, like the control room
   };
 
   return (  // The part that shows up on the screen
-    <div className="App">  // A big container for everything, styled by App.css
-      <h1>Fitness Tracker</h1>  // A big title
-      <form onSubmit={handleSubmit}>  // A form where users type stuff
+    <div className="App">
+      <h1>Fitness Tracker</h1> 
+      <form onSubmit={handleSubmit}>
         <input  // A box for the workout type
           name="type"
           value={formData.type}  // Shows what’s in the form box
@@ -79,27 +79,27 @@ function App() {  // The main part of your app, like the control room
           onChange={handleChange}
           placeholder="Calories"
         />
-        <button type="submit">Log Workout</button>  // A button to send the form
+        <button type="submit">Log Workout</button> 
       </form>
-       <form onSubmit={handleSubmit}>  // A form where users type stuff
+       <form onSubmit={handleSubmit}>
         <input  // A box for the workout type
           name="type"
           value={formData.type}  // Shows what’s in the form box
           onChange={handleChange}  // Updates the box when typing
           placeholder="Workout Name"  // Hint text when empty
         />
-        <button type="submit">Delete Workout</button>  // A button to send the form
+        <button type="delete">Delete Workout</button>
       </form>
-      <h2>Your Workouts</h2>  // A title for the workout list
-      <ul>  // A list to show workouts
+      <h2>Your Workouts</h2>
+      <ul>
         {workouts.map((w, idx) => (  // Loop through the workouts box
           <li key={idx}>{w.type} - {w.duration} min - {w.calories} cal</li>  // Show each workout
         ))}
       </ul>
-      <h2>Insights</h2>  // A title for insights
-      {insights && <p>{insights.message}</p>}  // Show the insight message if it exists
-      <div style={{ width: '50%', margin: '0 auto' }}>  // A box to hold the chart, centered and half-width
-        <Bar data={chartData} />  // The actual bar chart
+      <h2>Insights</h2>
+      {insights && <p>{insights.message}</p>}
+      <div style={{ width: '50%', margin: '0 auto' }}>
+        <Bar data={chartData} />
       </div>
     </div>
   );
