@@ -53,7 +53,7 @@ function App() {  // The main part of your app, like the control room
   };
   const handleDelete = (e) => {  // A helper for when the user clicks "Delete Workout"
     e.preventDefault();  // Stop the page from refreshing (normal form behavior)
-    axios.delete('https://7pybxmlcvh.execute-api.us-east-1.amazonaws.com/workouts', {  // Send the workout to the backend
+    axios.delete(`https://7pybxmlcvh.execute-api.us-east-1.amazonaws.com/workouts/${deleteFormData.type}`, {  // Send the workout to the backend
       type: deleteFormData.type,
     })
       .then(() => {  // If it works...
