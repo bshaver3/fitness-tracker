@@ -10,7 +10,7 @@ function App() {  // The main part of your app, like the control room
   const [workouts, setWorkouts] = useState([]);  // A box to hold all your workouts
   const [insights, setInsights] = useState(null);  // A box for cool facts (like total calories)
   const [formData, setFormData] = useState({ type: '', duration: '', calories: '' });  // A box for what the user types
-  const [deleteFormData, setDeleteFormData] = useState({ type: '' });  // A separate box for delete form
+  const [deleteFormData, setDeleteFormData] = useState({ id: '' });  // A separate box for delete form
 
   useEffect(() => {  // A robot that runs when the app starts
     fetchWorkouts();  // Go get the workouts
@@ -53,11 +53,9 @@ function App() {  // The main part of your app, like the control room
   };
   const handleDelete = (e) => {  // A helper for when the user clicks "Delete Workout"
     e.preventDefault();  // Stop the page from refreshing (normal form behavior)
-    axios.delete(`https://7pybxmlcvh.execute-api.us-east-1.amazonaws.com/workouts/${deleteFormData.type}`, {  // Send the workout to the backend
-      type: deleteFormData.type,
-    })
+    axios.delete(`https://7pybxmlcvh.execute-api.us-east-1.amazonaws.com/workouts/${deleteFormData.id}`)  // Send delete request with workout ID
       .then(() => {  // If it works...
-        setDeleteFormData({ type: '' });  // Clear the delete form box
+        setDeleteFormData({ id: '' });  // Clear the delete form box
         fetchWorkouts();  // Get the updated workout list
         fetchInsights();  // Get the updated insights
       })
@@ -99,18 +97,18 @@ function App() {  // The main part of your app, like the control room
         <button type="submit">Log Workout</button> 
       </form>
        <form onSubmit={handleDelete}>
-        <input  // A box for the workout type
-          name="type"
-          value={deleteFormData.type}  // Shows what's in the delete form box
+        <input  // A box for the workout ID
+          name="id"
+          value={deleteFormData.id}  // Shows what's in the delete form box
           onChange={handleDeleteChange}  // Updates the delete box when typing
-          placeholder="Workout Name"  // Hint text when empty
+          placeholder="Workout ID"  // Hint text when empty
         />
         <button style={{ backgroundColor: 'red', color: 'white' }} >Delete Workout</button>
       </form>
       <h2>Your Workouts</h2>
       <ul>
         {workouts.map((w, idx) => (  // Loop through the workouts box
-          <li key={idx}>{w.type} - {w.duration} min - {w.calories} cal</li>  // Show each workout
+          <li key={idx}>{w.id} - {w.type} - {w.duration} min - {w.calories} cal</li>  // Show each workout
         ))}
       </ul>
       <h2>Insights</h2>
