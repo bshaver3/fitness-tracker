@@ -10,6 +10,7 @@ function App() {  // The main part of your app, like the control room
   const [workouts, setWorkouts] = useState([]);  // A box to hold all your workouts
   const [insights, setInsights] = useState(null);  // A box for cool facts (like total calories)
   const [formData, setFormData] = useState({ type: '', duration: '', calories: '' });  // A box for what the user types
+  const [deleteFormData, setDeleteFormData] = useState({ type: '' });  // A separate box for delete form
 
   useEffect(() => {  // A robot that runs when the app starts
     fetchWorkouts();  // Go get the workouts
@@ -32,6 +33,10 @@ function App() {  // The main part of your app, like the control room
     setFormData({ ...formData, [e.target.name]: e.target.value });  // Update the form box with new typing
   };
 
+  const handleDeleteChange = (e) => {  // A helper to watch what the user types in delete form
+    setDeleteFormData({ ...deleteFormData, [e.target.name]: e.target.value });  // Update the delete form box
+  };
+
   const handleSubmit = (e) => {  // A helper for when the user clicks "Log Workout"
     e.preventDefault();  // Stop the page from refreshing (normal form behavior)
     axios.post('https://7pybxmlcvh.execute-api.us-east-1.amazonaws.com/workouts', {  // Send the workout to the backend
@@ -49,10 +54,10 @@ function App() {  // The main part of your app, like the control room
   const handleDelete = (e) => {  // A helper for when the user clicks "Delete Workout"
     e.preventDefault();  // Stop the page from refreshing (normal form behavior)
     axios.delete('https://7pybxmlcvh.execute-api.us-east-1.amazonaws.com/workouts', {  // Send the workout to the backend
-      type: formData.type,
+      type: deleteFormData.type,
     })
       .then(() => {  // If it works...
-        setFormData({ type: '', duration: '', calories: '' });  // Clear the form box
+        setDeleteFormData({ type: '' });  // Clear the delete form box
         fetchWorkouts();  // Get the updated workout list
         fetchInsights();  // Get the updated insights
       })
@@ -96,8 +101,8 @@ function App() {  // The main part of your app, like the control room
        <form onSubmit={handleDelete}>
         <input  // A box for the workout type
           name="type"
-          value={formData.type}  // Shows what’s in the form box
-          onChange={handleChange}  // Updates the box when typing
+          value={deleteFormData.type}  // Shows what's in the delete form box
+          onChange={handleDeleteChange}  // Updates the delete box when typing
           placeholder="Workout Name"  // Hint text when empty
         />
         <button style={{ backgroundColor: 'red', color: 'white' }} >Delete Workout</button>
