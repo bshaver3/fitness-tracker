@@ -8,56 +8,95 @@ import './App.css';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function App() {
+  const linkStyle = {
+    color: 'white',
+    textDecoration: 'none',
+    padding: '12px 28px',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    borderRadius: '8px',
+    fontWeight: 'bold',
+    fontSize: '16px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+    position: 'relative',
+    overflow: 'hidden'
+  };
+
   return (
     <Router>
       <div className="App">
         <nav style={{
-          backgroundColor: '#282c34',
-          padding: '15px',
-          marginBottom: '20px',
+          background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%)',
+          padding: '20px 40px',
+          marginBottom: '30px',
           display: 'flex',
-          justifyContent: 'center',
+          flexDirection: 'column',
+          alignItems: 'center',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          position: 'relative',
           gap: '20px'
         }}>
-          <Link
-            to="/"
-            style={{
-              color: 'white',
-              textDecoration: 'none',
-              padding: '10px 20px',
-              backgroundColor: '#61dafb',
-              borderRadius: '5px',
-              fontWeight: 'bold'
-            }}
-          >
-            Home
-          </Link>
-          <Link
-            to="/profile"
-            style={{
-              color: 'white',
-              textDecoration: 'none',
-              padding: '10px 20px',
-              backgroundColor: '#61dafb',
-              borderRadius: '5px',
-              fontWeight: 'bold'
-            }}
-          >
-            Profile
-          </Link>
-          <Link
-            to="/goals"
-            style={{
-              color: 'white',
-              textDecoration: 'none',
-              padding: '10px 20px',
-              backgroundColor: '#61dafb',
-              borderRadius: '5px',
-              fontWeight: 'bold'
-            }}
-          >
-            Goals
-          </Link>
+          <div style={{
+            color: 'white',
+            fontSize: '28px',
+            fontWeight: 'bold',
+            letterSpacing: '1px',
+            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <span style={{ fontSize: '32px' }}>💪</span>
+            <span>FitTrack</span>
+          </div>
+          <div style={{
+            display: 'flex',
+            gap: '15px',
+            justifyContent: 'center'
+          }}>
+            <Link
+              to="/"
+              style={linkStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+              }}
+            >
+              Home
+            </Link>
+            <Link
+              to="/profile"
+              style={linkStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+              }}
+            >
+              Profile
+            </Link>
+            <Link
+              to="/goals"
+              style={linkStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+              }}
+            >
+              Goals
+            </Link>
+          </div>
         </nav>
 
         <Routes>
