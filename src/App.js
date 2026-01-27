@@ -1,123 +1,73 @@
-import logo from './logo.svg';
-import React, { useState, useEffect } from 'react';  // Bringing in tools to make our app interactive
-import axios from 'axios';  // A helper to send messages to the backend
-import './App.css';  // A file to make it look nice
-import { Bar } from 'react-chartjs-2';  // A bar chart type
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';  // Chart pieces
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);  // Tell Chart.js to use these pieces
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import Home from './Home';
+import Profile from './Profile';
+import Goals from './Goals';
+import './App.css';
 
-function App() {  // The main part of your app, like the control room
-  const [workouts, setWorkouts] = useState([]);  // A box to hold all your workouts
-  const [insights, setInsights] = useState(null);  // A box for cool facts (like total calories)
-  const [formData, setFormData] = useState({ type: '', duration: '', calories: '' });  // A box for what the user types
-  const [deleteFormData, setDeleteFormData] = useState({ id: '' });  // A separate box for delete form
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-  useEffect(() => {  // A robot that runs when the app starts
-    fetchWorkouts();  // Go get the workouts
-    fetchInsights();  // Go get the insights
-  }, []);  // Empty "watch list" means it only runs once when the app loads
+function App() {
+  return (
+    <Router>
+      <div className="App">
+        <nav style={{
+          backgroundColor: '#282c34',
+          padding: '15px',
+          marginBottom: '20px',
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '20px'
+        }}>
+          <Link
+            to="/"
+            style={{
+              color: 'white',
+              textDecoration: 'none',
+              padding: '10px 20px',
+              backgroundColor: '#61dafb',
+              borderRadius: '5px',
+              fontWeight: 'bold'
+            }}
+          >
+            Home
+          </Link>
+          <Link
+            to="/profile"
+            style={{
+              color: 'white',
+              textDecoration: 'none',
+              padding: '10px 20px',
+              backgroundColor: '#61dafb',
+              borderRadius: '5px',
+              fontWeight: 'bold'
+            }}
+          >
+            Profile
+          </Link>
+          <Link
+            to="/goals"
+            style={{
+              color: 'white',
+              textDecoration: 'none',
+              padding: '10px 20px',
+              backgroundColor: '#61dafb',
+              borderRadius: '5px',
+              fontWeight: 'bold'
+            }}
+          >
+            Goals
+          </Link>
+        </nav>
 
-  const fetchWorkouts = () => {  // A little helper to grab workouts
-    axios.get('https://7pybxmlcvh.execute-api.us-east-1.amazonaws.com/workouts')  // Ask the backend for the workout list
-      .then(response => setWorkouts(response.data))  // Put the list in the workouts box
-      .catch(error => console.error('Error fetching workouts:', error));  // Yell if something goes wrong
-  };
-
-  const fetchInsights = () => {  // A helper to grab insights
-    axios.get('https://7pybxmlcvh.execute-api.us-east-1.amazonaws.com/insights')  // Ask the backend for insights
-      .then(response => setInsights(response.data))  // Put the insights in the insights box
-      .catch(error => console.error('Error fetching insights:', error));  // Yell if something’s off
-  };
-
-  const handleChange = (e) => {  // A helper to watch what the user types
-    setFormData({ ...formData, [e.target.name]: e.target.value });  // Update the form box with new typing
-  };
-
-  const handleDeleteChange = (e) => {  // A helper to watch what the user types in delete form
-    setDeleteFormData({ ...deleteFormData, [e.target.name]: e.target.value });  // Update the delete form box
-  };
-
-  const handleSubmit = (e) => {  // A helper for when the user clicks "Log Workout"
-    e.preventDefault();  // Stop the page from refreshing (normal form behavior)
-    axios.post('https://7pybxmlcvh.execute-api.us-east-1.amazonaws.com/workouts', {  // Send the workout to the backend
-      type: formData.type,
-      duration: parseInt(formData.duration),  // Turn text into a number
-      calories: parseInt(formData.calories)  // Turn text into a number
-    })
-      .then(() => {  // If it works...
-        setFormData({ type: '', duration: '', calories: '' });  // Clear the form box
-        fetchWorkouts();  // Get the updated workout list
-        fetchInsights();  // Get the updated insights
-      })
-      .catch(error => console.error('Error logging workout:', error));  // Yell if it fails
-  };
-  const handleDelete = (e) => {  // A helper for when the user clicks "Delete Workout"
-    e.preventDefault();  // Stop the page from refreshing (normal form behavior)
-    axios.delete(`https://7pybxmlcvh.execute-api.us-east-1.amazonaws.com/workouts/${deleteFormData.id}`)  // Send delete request with workout ID
-      .then(() => {  // If it works...
-        setDeleteFormData({ id: '' });  // Clear the delete form box
-        fetchWorkouts();  // Get the updated workout list
-        fetchInsights();  // Get the updated insights
-      })
-      .catch(error => console.error('Error deleting workout:', error));  // Yell if it fails
-  };
-  const chartData = {
-    labels: workouts.map(w => w.type),  // X-axis: workout types like "Cardio"
-    datasets: [{
-      label: 'Calories Burned',  // What the bars represent
-      data: workouts.map(w => w.calories),  // Y-axis: calories for each workout
-      backgroundColor: 'rgba(75, 192, 192, 0.6)'  // Bar color (teal-ish)
-    }]
-  };
-
-  return (  // The part that shows up on the screen
-    <div className="App">
-      <h1>Fitness Tracker</h1> 
-      <form onSubmit={handleSubmit}>
-        <input  // A box for the workout type
-          name="type"
-          value={formData.type}  // Shows what’s in the form box
-          onChange={handleChange}  // Updates the box when typing
-          placeholder="Workout Type"  // Hint text when empty
-        />
-        <input  // A box for duration
-          name="duration"
-          type="number"  // Only allows numbers
-          value={formData.duration}
-          onChange={handleChange}
-          placeholder="Duration (min)"
-        />
-        <input  // A box for calories
-          name="calories"
-          type="number"
-          value={formData.calories}
-          onChange={handleChange}
-          placeholder="Calories"
-        />
-        <button type="submit">Log Workout</button> 
-      </form>
-       <form onSubmit={handleDelete}>
-        <input  // A box for the workout ID
-          name="id"
-          value={deleteFormData.id}  // Shows what's in the delete form box
-          onChange={handleDeleteChange}  // Updates the delete box when typing
-          placeholder="Workout ID"  // Hint text when empty
-        />
-        <button style={{ backgroundColor: 'red', color: 'white' }} >Delete Workout</button>
-      </form>
-      <h2>Your Workouts</h2>
-      <ul>
-        {workouts.map((w, idx) => (  // Loop through the workouts box
-          <li key={idx}>{w.id} - {w.type} - {w.duration} min - {w.calories} cal</li>  // Show each workout
-        ))}
-      </ul>
-      <h2>Insights</h2>
-      {insights && <p>{insights.message}</p>}
-      <div style={{ width: '50%', margin: '0 auto' }}>
-        <Bar data={chartData} />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/goals" element={<Goals />} />
+        </Routes>
       </div>
-    </div>
+    </Router>
   );
 }
 
-export default App;  // Send this app to be used by React
+export default App;
