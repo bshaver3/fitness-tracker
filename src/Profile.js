@@ -83,7 +83,26 @@ function Profile() {
 
   return (
     <div className="App">
-      <h1>User Profile</h1>
+      <h1 style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        fontSize: '48px',
+        fontWeight: '900',
+        marginBottom: '10px',
+        letterSpacing: '-1px'
+      }}>
+        Your Profile
+      </h1>
+      <p style={{
+        color: '#666',
+        fontSize: '18px',
+        marginBottom: '30px',
+        fontWeight: '500'
+      }}>
+        Personalize your fitness experience
+      </p>
       <form onSubmit={handleSubmit} style={{ maxWidth: '600px', margin: '0 auto' }}>
 
         <div style={{ marginBottom: '20px' }}>
@@ -95,7 +114,7 @@ function Profile() {
               value={profileData.heightFeet}
               onChange={handleChange}
               placeholder="Feet"
-              style={{ flex: 1 }}
+              style={{ flex: 1, padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
             />
             <input
               name="heightInches"
@@ -103,7 +122,7 @@ function Profile() {
               value={profileData.heightInches}
               onChange={handleChange}
               placeholder="Inches"
-              style={{ flex: 1 }}
+              style={{ flex: 1, padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
             />
           </div>
         </div>
@@ -116,7 +135,7 @@ function Profile() {
             value={profileData.currentWeight}
             onChange={handleChange}
             placeholder="Weight in pounds"
-            style={{ width: '100%' }}
+            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
 
@@ -128,7 +147,7 @@ function Profile() {
             value={profileData.age}
             onChange={handleChange}
             placeholder="Age"
-            style={{ width: '100%' }}
+            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
 
@@ -138,7 +157,7 @@ function Profile() {
             name="sex"
             value={profileData.sex}
             onChange={handleChange}
-            style={{ width: '100%', padding: '8px' }}
+            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           >
             <option value="">Select...</option>
             <option value="male">Male</option>
@@ -153,7 +172,7 @@ function Profile() {
             name="goals"
             value={profileData.goals}
             onChange={handleChange}
-            style={{ width: '100%', padding: '8px' }}
+            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           >
             <option value="">Select...</option>
             <option value="lose-weight">Lose Weight</option>
@@ -172,7 +191,7 @@ function Profile() {
             value={profileData.targetWeight}
             onChange={handleChange}
             placeholder="Target weight in pounds"
-            style={{ width: '100%' }}
+            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
 
@@ -206,7 +225,7 @@ function Profile() {
             value={profileData.weeklyTargetValue}
             onChange={handleChange}
             placeholder={profileData.weeklyTargetType === 'workouts' ? 'Number of workouts per week' : 'Total minutes per week'}
-            style={{ width: '100%' }}
+            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
 
@@ -217,11 +236,23 @@ function Profile() {
             type="date"
             value={profileData.goalDeadline}
             onChange={handleChange}
-            style={{ width: '100%', padding: '8px' }}
+            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
 
-        <h2 style={{ marginTop: '40px', marginBottom: '20px' }}>Lifestyle & Experience</h2>
+        <h2 style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          fontSize: '32px',
+          fontWeight: '800',
+          marginTop: '40px',
+          marginBottom: '20px',
+          letterSpacing: '-0.5px'
+        }}>
+          Lifestyle & Experience
+        </h2>
 
         <div style={{ marginBottom: '20px' }}>
           <h3>Current Workout Frequency</h3>
@@ -232,7 +263,7 @@ function Profile() {
             value={profileData.workoutFrequency}
             onChange={handleChange}
             placeholder="Times per week"
-            style={{ width: '100%' }}
+            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
             min="0"
             max="7"
           />
@@ -245,7 +276,7 @@ function Profile() {
             name="activityLevel"
             value={profileData.activityLevel}
             onChange={handleChange}
-            style={{ width: '100%', padding: '8px' }}
+            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           >
             <option value="">Select...</option>
             <option value="sedentary">Sedentary (Desk job, minimal movement)</option>
@@ -263,7 +294,7 @@ function Profile() {
             name="gymExperience"
             value={profileData.gymExperience}
             onChange={handleChange}
-            style={{ width: '100%', padding: '8px' }}
+            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           >
             <option value="">Select...</option>
             <option value="beginner">Beginner (New to working out)</option>
@@ -274,7 +305,7 @@ function Profile() {
           </select>
         </div>
 
-        <button type="submit" style={{ width: '100%', padding: '12px', fontSize: '16px' }}>
+        <button type="submit" style={{ width: '100%', padding: '12px', fontSize: '16px', background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold', borderRadius: '4px', boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)', transition: 'all 0.3s ease' }}>
           Save Profile
         </button>
       </form>

@@ -30,6 +30,7 @@ function Goals() {
   const [formData, setFormData] = useState({
     workout_type: '',
     planned_date: '',
+    planned_time: '',
     planned_duration: '',
     notes: ''
   });
@@ -78,6 +79,7 @@ function Goals() {
     const payload = {
       workout_type: formData.workout_type,
       planned_date: formData.planned_date,
+      planned_time: formData.planned_time || null,
       planned_duration: parseInt(formData.planned_duration),
       notes: formData.notes || null
     };
@@ -103,6 +105,7 @@ function Goals() {
     setFormData({
       workout_type: workout.workout_type,
       planned_date: workout.planned_date,
+      planned_time: workout.planned_time || '',
       planned_duration: workout.planned_duration,
       notes: workout.notes || ''
     });
@@ -124,6 +127,7 @@ function Goals() {
     setFormData({
       workout_type: '',
       planned_date: '',
+      planned_time: '',
       planned_duration: '',
       notes: ''
     });
@@ -185,7 +189,14 @@ function Goals() {
 
   const getWorkoutsForDate = (date) => {
     const dateString = date.toISOString().split('T')[0];
-    return plannedWorkouts.filter(w => w.planned_date === dateString);
+    const workouts = plannedWorkouts.filter(w => w.planned_date === dateString);
+    // Sort by time - workouts without time appear last
+    return workouts.sort((a, b) => {
+      if (!a.planned_time && !b.planned_time) return 0;
+      if (!a.planned_time) return 1;
+      if (!b.planned_time) return -1;
+      return a.planned_time.localeCompare(b.planned_time);
+    });
   };
 
   const isToday = (date) => {
@@ -208,13 +219,33 @@ function Goals() {
     return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
   };
 
+  const formatTime = (timeString) => {
+    if (!timeString) return null;
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
   const weeklyProgress = getWeeklyProgress();
   const calendarDays = viewMode === 'calendar' ? getCalendarDays() : [];
 
   return (
     <div className="App">
-      <h1>Workout Planning</h1>
-      <p style={{ color: '#666', maxWidth: '600px', margin: '0 auto 20px' }}>
+      <h1 style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        fontSize: '48px',
+        fontWeight: '900',
+        marginBottom: '10px',
+        letterSpacing: '-1px'
+      }}>
+        Goal Planning
+      </h1>
+      <p style={{ color: '#666', fontSize: '18px', fontWeight: '500', maxWidth: '600px', margin: '0 auto 20px' }}>
         Plan your future workouts to stay on track with your fitness goals
       </p>
 
@@ -228,7 +259,7 @@ function Goals() {
           border: '1px solid #e0e0e0'
         }}>
           <h3 style={{ marginTop: 0 }}>This Week's Progress</h3>
-          <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#61dafb', margin: '10px 0' }}>
+          <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#8b5cf6', margin: '10px 0' }}>
             {weeklyProgress.current} / {weeklyProgress.target} {weeklyProgress.unit} planned
           </p>
           <div style={{
@@ -241,7 +272,7 @@ function Goals() {
             <div style={{
               width: `${Math.min((weeklyProgress.current / weeklyProgress.target) * 100, 100)}%`,
               height: '100%',
-              backgroundColor: weeklyProgress.current >= weeklyProgress.target ? '#4caf50' : '#61dafb',
+              background: weeklyProgress.current >= weeklyProgress.target ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
               transition: 'width 0.3s ease'
             }}></div>
           </div>
@@ -280,6 +311,17 @@ function Goals() {
             min={new Date().toISOString().split('T')[0]}
             style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
             required
+          />
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <h3>Time (optional)</h3>
+          <input
+            name="planned_time"
+            type="time"
+            value={formData.planned_time}
+            onChange={handleChange}
+            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
 
@@ -325,11 +367,13 @@ function Goals() {
               padding: '12px 20px',
               fontSize: '16px',
               borderRadius: '4px',
-              backgroundColor: '#61dafb',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
               color: 'white',
               border: 'none',
               cursor: 'pointer',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)',
+              transition: 'all 0.3s ease'
             }}
           >
             {editingId ? 'Update Plan' : 'Schedule Workout'}
@@ -362,12 +406,14 @@ function Goals() {
             padding: '10px 20px',
             fontSize: '14px',
             borderRadius: '4px',
-            backgroundColor: viewMode === 'list' ? '#61dafb' : '#e0e0e0',
+            background: viewMode === 'list' ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)' : '#e0e0e0',
             color: viewMode === 'list' ? 'white' : '#333',
             border: 'none',
             cursor: 'pointer',
             fontWeight: 'bold',
-            marginRight: '10px'
+            marginRight: '10px',
+            boxShadow: viewMode === 'list' ? '0 4px 15px rgba(139, 92, 246, 0.4)' : 'none',
+            transition: 'all 0.3s ease'
           }}
         >
           List View
@@ -378,18 +424,32 @@ function Goals() {
             padding: '10px 20px',
             fontSize: '14px',
             borderRadius: '4px',
-            backgroundColor: viewMode === 'calendar' ? '#61dafb' : '#e0e0e0',
+            background: viewMode === 'calendar' ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)' : '#e0e0e0',
             color: viewMode === 'calendar' ? 'white' : '#333',
             border: 'none',
             cursor: 'pointer',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            boxShadow: viewMode === 'calendar' ? '0 4px 15px rgba(139, 92, 246, 0.4)' : 'none',
+            transition: 'all 0.3s ease'
           }}
         >
           Calendar View
         </button>
       </div>
 
-      <h2>Planned Workouts</h2>
+      <h2 style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        fontSize: '32px',
+        fontWeight: '800',
+        marginTop: '40px',
+        marginBottom: '20px',
+        letterSpacing: '-0.5px'
+      }}>
+        Planned Workouts
+      </h2>
 
       {plannedWorkouts.length === 0 ? (
         <div style={{
@@ -421,6 +481,7 @@ function Goals() {
                   </div>
                   <div style={{ color: '#666', fontSize: '14px' }}>
                     {formatDate(workout.planned_date)}
+                    {workout.planned_time && ` at ${formatTime(workout.planned_time)}`}
                   </div>
                   <div style={{ color: '#666', fontSize: '14px' }}>
                     Duration: {workout.planned_duration} minutes
@@ -435,14 +496,16 @@ function Goals() {
                   <button
                     onClick={() => handleEdit(workout)}
                     style={{
-                      backgroundColor: '#61dafb',
+                      background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
                       color: 'white',
                       border: 'none',
                       cursor: 'pointer',
                       padding: '6px 12px',
                       borderRadius: '4px',
                       fontSize: '14px',
-                      fontWeight: 'bold'
+                      fontWeight: 'bold',
+                      boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)',
+                      transition: 'all 0.3s ease'
                     }}
                   >
                     Edit
@@ -482,14 +545,16 @@ function Goals() {
             <button
               onClick={() => changeMonth(-1)}
               style={{
-                backgroundColor: '#61dafb',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
                 color: 'white',
                 border: 'none',
                 cursor: 'pointer',
                 padding: '8px 16px',
                 borderRadius: '4px',
                 fontSize: '14px',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)',
+                transition: 'all 0.3s ease'
               }}
             >
               ← Previous
@@ -500,14 +565,16 @@ function Goals() {
             <button
               onClick={() => changeMonth(1)}
               style={{
-                backgroundColor: '#61dafb',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
                 color: 'white',
                 border: 'none',
                 cursor: 'pointer',
                 padding: '8px 16px',
                 borderRadius: '4px',
                 fontSize: '14px',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)',
+                transition: 'all 0.3s ease'
               }}
             >
               Next →
@@ -552,16 +619,17 @@ function Goals() {
                   style={{
                     minHeight: '120px',
                     backgroundColor: sameMonth ? '#f5f5f5' : '#fafafa',
-                    border: today ? '2px solid #61dafb' : '1px solid #e0e0e0',
+                    border: today ? '3px solid #8b5cf6' : '1px solid #e0e0e0',
                     borderRadius: '4px',
                     padding: '8px',
                     display: 'flex',
-                    flexDirection: 'column'
+                    flexDirection: 'column',
+                    boxShadow: today ? '0 4px 15px rgba(139, 92, 246, 0.2)' : 'none'
                   }}
                 >
                   <div style={{
                     fontWeight: today ? 'bold' : 'normal',
-                    color: today ? '#61dafb' : (sameMonth ? '#333' : '#999'),
+                    color: today ? '#8b5cf6' : (sameMonth ? '#333' : '#999'),
                     marginBottom: '8px',
                     fontSize: '14px'
                   }}>
@@ -574,20 +642,29 @@ function Goals() {
                       <div
                         key={workout.id}
                         style={{
-                          backgroundColor: '#61dafb',
+                          background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
                           color: 'white',
                           padding: '6px 8px',
                           borderRadius: '3px',
                           fontSize: '11px',
                           cursor: 'pointer',
-                          position: 'relative'
+                          position: 'relative',
+                          boxShadow: '0 2px 6px rgba(139, 92, 246, 0.3)',
+                          transition: 'all 0.2s ease'
                         }}
                         onClick={() => handleEdit(workout)}
-                        title={`${workout.workout_type} - ${workout.planned_duration} min${workout.notes ? '\n' + workout.notes : ''}`}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        title={`${workout.workout_type} - ${workout.planned_duration} min${workout.planned_time ? '\n' + formatTime(workout.planned_time) : ''}${workout.notes ? '\n' + workout.notes : ''}`}
                       >
                         <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>
                           {workout.workout_type.charAt(0).toUpperCase() + workout.workout_type.slice(1)}
                         </div>
+                        {workout.planned_time && (
+                          <div style={{ fontSize: '10px', marginBottom: '2px' }}>
+                            {formatTime(workout.planned_time)}
+                          </div>
+                        )}
                         <div style={{ fontSize: '10px' }}>
                           {workout.planned_duration} min
                         </div>

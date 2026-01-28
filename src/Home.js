@@ -50,7 +50,15 @@ function Home() {
 
   const fetchWorkouts = () => {
     axios.get(`${API_BASE}/workouts`)
-      .then(response => setWorkouts(response.data))
+      .then(response => {
+        // Sort workouts by timestamp (most recent first)
+        const sortedWorkouts = response.data.sort((a, b) => {
+          const dateA = new Date(a.timestamp);
+          const dateB = new Date(b.timestamp);
+          return dateB - dateA; // Descending order (newest first)
+        });
+        setWorkouts(sortedWorkouts);
+      })
       .catch(error => console.error('Error fetching workouts:', error));
   };
 
@@ -144,7 +152,7 @@ function Home() {
     datasets: [{
       label: 'Calories Burned',
       data: workouts.map(w => w.calories),
-      backgroundColor: 'rgba(75, 192, 192, 0.6)'
+      backgroundColor: 'rgba(139, 92, 246, 0.7)'
     }]
   };
 
@@ -167,12 +175,12 @@ function Home() {
   const workoutTypes = [...new Set(workouts.map(w => w.type))];
 
   const colors = [
-    'rgba(255, 99, 132, 0.6)',
-    'rgba(54, 162, 235, 0.6)',
-    'rgba(255, 206, 86, 0.6)',
-    'rgba(75, 192, 192, 0.6)',
-    'rgba(153, 102, 255, 0.6)',
-    'rgba(255, 159, 64, 0.6)'
+    'rgba(139, 92, 246, 0.7)',    // Purple
+    'rgba(168, 85, 247, 0.7)',    // Bright Purple
+    'rgba(126, 34, 206, 0.7)',    // Deep Purple
+    'rgba(16, 185, 129, 0.7)',    // Emerald
+    'rgba(59, 130, 246, 0.7)',    // Blue
+    'rgba(236, 72, 153, 0.7)'     // Pink
   ];
 
   const timeChartData = {
@@ -202,7 +210,26 @@ function Home() {
 
   return (
     <div className="App">
-      <h1>Fitness Tracker</h1>
+      <h1 style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        fontSize: '48px',
+        fontWeight: '900',
+        marginBottom: '10px',
+        letterSpacing: '-1px'
+      }}>
+        Your Fitness Journey
+      </h1>
+      <p style={{
+        color: '#666',
+        fontSize: '18px',
+        marginBottom: '30px',
+        fontWeight: '500'
+      }}>
+        Track, analyze, and achieve your fitness goals
+      </p>
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
         <select
           name="type"
@@ -211,7 +238,8 @@ function Home() {
           style={{ padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           required
         >
-          <option value="">Select Workout Type</option>
+          <option value="" style={{ padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
+          required>Select Workout Type</option>
           {Object.keys(MET_VALUES)
             .filter(key => key !== 'default')
             .sort()
@@ -240,11 +268,23 @@ function Home() {
           style={{ padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           required
         />
-        <button type="submit" style={{ padding: '10px 20px', fontSize: '14px', borderRadius: '4px', backgroundColor: '#61dafb', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
+        <button type="submit" style={{ padding: '10px 20px', fontSize: '14px', borderRadius: '4px', background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)', transition: 'all 0.3s ease' }}>
           Log Workout
         </button>
       </form>
-      <h2>Your Workouts</h2>
+      <h2 style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        fontSize: '32px',
+        fontWeight: '800',
+        marginTop: '40px',
+        marginBottom: '20px',
+        letterSpacing: '-0.5px'
+      }}>
+        Your Workouts
+      </h2>
       <ul style={{ listStyle: 'none', padding: 0, maxWidth: '600px', margin: '0 auto' }}>
         {workouts.map((w, idx) => (
           <li key={idx} style={{
@@ -257,7 +297,22 @@ function Home() {
             borderRadius: '4px',
             border: '1px solid #e0e0e0'
           }}>
-            <span>{w.type.charAt(0).toUpperCase() + w.type.slice(1)} - {w.duration} min - {w.calories} cal</span>
+            <span>
+              {w.type.charAt(0).toUpperCase() + w.type.slice(1)} - {w.duration} min - {w.calories} cal
+              {w.timestamp && (
+                <span style={{ marginLeft: '8px', color: '#666', fontSize: '13px' }}>
+                  {new Date(w.timestamp).toLocaleString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    timeZone: 'America/New_York',
+                    timeZoneName: 'short'
+                  })}
+                </span>
+              )}
+            </span>
             <button
               onClick={() => deleteWorkout(w.id)}
               style={{
@@ -276,7 +331,19 @@ function Home() {
           </li>
         ))}
       </ul>
-      <h2>Insights</h2>
+      <h2 style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        fontSize: '32px',
+        fontWeight: '800',
+        marginTop: '40px',
+        marginBottom: '20px',
+        letterSpacing: '-0.5px'
+      }}>
+        Insights
+      </h2>
       {insights && (
         <div style={{
           padding: '15px',
@@ -292,11 +359,33 @@ function Home() {
       )}
       <div style={{ display: 'flex', justifyContent: 'space-around', gap: '20px', padding: '20px' }}>
         <div style={{ flex: 1 }}>
-          <h2>Calories by Workout Type</h2>
+          <h2 style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            fontSize: '24px',
+            fontWeight: '800',
+            marginBottom: '20px',
+            letterSpacing: '-0.5px'
+          }}>
+            Calories by Workout Type
+          </h2>
           <Bar data={chartData} />
         </div>
         <div style={{ flex: 1 }}>
-          <h2>Workouts Over Time</h2>
+          <h2 style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            fontSize: '24px',
+            fontWeight: '800',
+            marginBottom: '20px',
+            letterSpacing: '-0.5px'
+          }}>
+            Workouts Over Time
+          </h2>
           <Bar data={timeChartData} options={stackedOptions} />
         </div>
       </div>
