@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 import './App.css';
-
-const API_BASE = process.env.REACT_APP_API_BASE;
 
 // MET values for different workout types
 const MET_VALUES = {
@@ -44,13 +42,13 @@ function Goals() {
   }, []);
 
   const fetchPlannedWorkouts = () => {
-    axios.get(`${API_BASE}/planned-workouts`)
+    api.get('/planned-workouts')
       .then(response => setPlannedWorkouts(response.data))
       .catch(error => console.error('Error fetching planned workouts:', error));
   };
 
   const fetchProfile = () => {
-    axios.get(`${API_BASE}/profile`)
+    api.get('/profile')
       .then(response => {
         if (response.data && Object.keys(response.data).length > 0) {
           setUserProfile(response.data);
@@ -85,14 +83,14 @@ function Goals() {
     };
 
     if (editingId) {
-      axios.put(`${API_BASE}/planned-workouts/${editingId}`, payload)
+      api.put(`/planned-workouts/${editingId}`, payload)
         .then(() => {
           resetForm();
           fetchPlannedWorkouts();
         })
         .catch(error => console.error('Error updating workout:', error));
     } else {
-      axios.post(`${API_BASE}/planned-workouts`, payload)
+      api.post('/planned-workouts', payload)
         .then(() => {
           resetForm();
           fetchPlannedWorkouts();
@@ -115,7 +113,7 @@ function Goals() {
 
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this planned workout?')) {
-      axios.delete(`${API_BASE}/planned-workouts/${id}`)
+      api.delete(`/planned-workouts/${id}`)
         .then(() => {
           fetchPlannedWorkouts();
         })

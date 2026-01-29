@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 import { Bar } from 'react-chartjs-2';
 import './App.css';
-
-const API_BASE = process.env.REACT_APP_API_BASE;
 
 // MET values for different workout types
 const MET_VALUES = {
@@ -31,15 +29,17 @@ function Home() {
   const [formData, setFormData] = useState({ type: '', duration: '', calories: '' });
   const [userProfile, setUserProfile] = useState(null);
   const [manualCalories, setManualCalories] = useState(false); // Track if user manually entered calories
+  const [plannedWorkouts, setPlannedWorkouts] = useState([]);
 
   useEffect(() => {
     fetchWorkouts();
     fetchInsights();
     fetchProfile();
+    fetchPlannedWorkouts();
   }, []);
 
   const fetchProfile = () => {
-    axios.get(`${API_BASE}/profile`)
+    api.get('/profile')
       .then(response => {
         if (response.data && Object.keys(response.data).length > 0) {
           setUserProfile(response.data);
@@ -49,7 +49,7 @@ function Home() {
   };
 
   const fetchWorkouts = () => {
-    axios.get(`${API_BASE}/workouts`)
+    api.get('/workouts')
       .then(response => {
         // Sort workouts by timestamp (most recent first)
         const sortedWorkouts = response.data.sort((a, b) => {
@@ -63,9 +63,17 @@ function Home() {
   };
 
   const fetchInsights = () => {
-    axios.get(`${API_BASE}/insights`)
+    api.get('/insights')
       .then(response => setInsights(response.data))
       .catch(error => console.error('Error fetching insights:', error));
+  };
+
+  const fetchPlannedWorkouts = () => {
+    api.get('/planned-workouts')
+      .then(response => {
+        setPlannedWorkouts(response.data);
+      })
+      .catch(error => console.error('Error fetching planned workouts:', error));
   };
 
   const calculateCalories = (workoutType, duration, weightLbs) => {
@@ -124,7 +132,7 @@ function Home() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.post(`${API_BASE}/workouts`, {
+    api.post('/workouts', {
       type: formData.type,
       duration: parseInt(formData.duration),
       calories: parseInt(formData.calories)
@@ -139,12 +147,81 @@ function Home() {
   };
 
   const deleteWorkout = (workoutId) => {
-    axios.delete(`${API_BASE}/workouts/${workoutId}`)
+    api.delete(`/workouts/${workoutId}`)
       .then(() => {
         fetchWorkouts();
         fetchInsights();
       })
       .catch(error => console.error('Error deleting workout:', error));
+  };
+
+  const getPastPlannedWorkouts = () => {
+    const now = new Date();
+    return plannedWorkouts.filter(workout => {
+      if (workout.completed) return false; // Skip already completed workouts
+
+      const workoutDate = new Date(workout.planned_date);
+
+      // If there's a time, use it for comparison
+      if (workout.planned_time) {
+        const [hours, minutes] = workout.planned_time.split(':');
+        workoutDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        return workoutDate < now;
+      }
+
+      // If no time specified, consider it past if the date is before today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      workoutDate.setHours(0, 0, 0, 0);
+      return workoutDate < today;
+    }).sort((a, b) => {
+      // Sort by date, most recent first
+      const dateA = new Date(a.planned_date);
+      const dateB = new Date(b.planned_date);
+      return dateB - dateA;
+    });
+  };
+
+  const quickLogPlannedWorkout = (plannedWorkout) => {
+    // Calculate calories based on user profile
+    const calories = userProfile?.current_weight
+      ? calculateCalories(plannedWorkout.workout_type, plannedWorkout.planned_duration, userProfile.current_weight)
+      : '';
+
+    // Create actual workout
+    api.post('/workouts', {
+      type: plannedWorkout.workout_type,
+      duration: plannedWorkout.planned_duration,
+      calories: calories || 0
+    })
+      .then((response) => {
+        // Mark planned workout as completed
+        return api.put(`/planned-workouts/${plannedWorkout.id}`, {
+          ...plannedWorkout,
+          completed: true,
+          completed_workout_id: response.data.id
+        });
+      })
+      .then(() => {
+        fetchWorkouts();
+        fetchInsights();
+        fetchPlannedWorkouts();
+        alert('Workout logged successfully!');
+      })
+      .catch(error => {
+        console.error('Error logging planned workout:', error);
+        alert('Error logging workout. Please try again.');
+      });
+  };
+
+  const dismissPlannedWorkout = (plannedWorkoutId) => {
+    if (window.confirm('Are you sure you want to dismiss this planned workout?')) {
+      api.delete(`/planned-workouts/${plannedWorkoutId}`)
+        .then(() => {
+          fetchPlannedWorkouts();
+        })
+        .catch(error => console.error('Error dismissing planned workout:', error));
+    }
   };
 
   const chartData = {
@@ -272,6 +349,109 @@ function Home() {
           Log Workout
         </button>
       </form>
+
+      {/* Past Planned Workouts Section */}
+      {getPastPlannedWorkouts().length > 0 && (
+        <>
+          <h2 style={{
+            background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            fontSize: '32px',
+            fontWeight: '800',
+            marginTop: '40px',
+            marginBottom: '20px',
+            letterSpacing: '-0.5px'
+          }}>
+            Missed Workouts
+          </h2>
+          <p style={{
+            color: '#666',
+            fontSize: '16px',
+            marginBottom: '20px',
+            maxWidth: '600px',
+            margin: '0 auto 20px'
+          }}>
+            You have {getPastPlannedWorkouts().length} planned workout{getPastPlannedWorkouts().length !== 1 ? 's' : ''} that {getPastPlannedWorkouts().length !== 1 ? 'have' : 'has'} passed. Log them or dismiss them.
+          </p>
+          <ul style={{ listStyle: 'none', padding: 0, maxWidth: '600px', margin: '0 auto 20px' }}>
+            {getPastPlannedWorkouts().map((workout) => (
+              <li key={workout.id} style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '15px',
+                marginBottom: '10px',
+                backgroundColor: '#fff3e0',
+                borderRadius: '4px',
+                border: '2px solid #fb923c',
+                boxShadow: '0 2px 8px rgba(251, 146, 60, 0.2)'
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '4px', color: '#333' }}>
+                    {workout.workout_type.charAt(0).toUpperCase() + workout.workout_type.slice(1)}
+                  </div>
+                  <div style={{ color: '#666', fontSize: '14px' }}>
+                    {new Date(workout.planned_date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                    {workout.planned_time && ` at ${(() => {
+                      const [hours, minutes] = workout.planned_time.split(':');
+                      const hour = parseInt(hours);
+                      const ampm = hour >= 12 ? 'PM' : 'AM';
+                      const displayHour = hour % 12 || 12;
+                      return `${displayHour}:${minutes} ${ampm}`;
+                    })()}`}
+                  </div>
+                  <div style={{ color: '#666', fontSize: '14px' }}>
+                    Duration: {workout.planned_duration} minutes
+                  </div>
+                  {workout.notes && (
+                    <div style={{ marginTop: '6px', fontSize: '13px', fontStyle: 'italic', color: '#555' }}>
+                      {workout.notes}
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
+                  <button
+                    onClick={() => quickLogPlannedWorkout(workout)}
+                    style={{
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      color: 'white',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '8px 16px',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+                      transition: 'all 0.3s ease',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Log Now
+                  </button>
+                  <button
+                    onClick={() => dismissPlannedWorkout(workout.id)}
+                    style={{
+                      backgroundColor: '#ff4444',
+                      color: 'white',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '6px 12px',
+                      borderRadius: '4px',
+                      fontSize: '13px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
       <h2 style={{
         background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
         WebkitBackgroundClip: 'text',

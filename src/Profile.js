@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 import './App.css';
-
-const API_BASE = process.env.REACT_APP_API_BASE;
 
 function Profile() {
   const [profileData, setProfileData] = useState({
@@ -23,7 +21,7 @@ function Profile() {
 
   useEffect(() => {
     // Fetch existing profile data
-    axios.get(`${API_BASE}/profile`)
+    api.get('/profile')
       .then(response => {
         if (response.data && Object.keys(response.data).length > 0) {
           setProfileData({
@@ -53,9 +51,8 @@ function Profile() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Convert to backend field names
+    // Convert to backend field names (user_id is set by backend from auth token)
     const backendData = {
-      user_id: 'default',
       height_feet: parseInt(profileData.heightFeet) || null,
       height_inches: parseInt(profileData.heightInches) || null,
       current_weight: parseInt(profileData.currentWeight) || null,
@@ -71,7 +68,7 @@ function Profile() {
       gym_experience: profileData.gymExperience || null
     };
 
-    axios.post(`${API_BASE}/profile`, backendData)
+    api.post('/profile', backendData)
       .then(() => {
         alert('Profile saved successfully!');
       })
