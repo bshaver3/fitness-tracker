@@ -1,15 +1,16 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import { AuthProvider, useAuth } from './AuthContext';
 import ProtectedRoute from './ProtectedRoute';
 import Home from './Home';
 import Profile from './Profile';
 import Goals from './Goals';
+import Insights from './Insights';
 import Login from './Login';
 import Signup from './Signup';
 import './App.css';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend);
 
 function NavBar() {
   const { user, signOut } = useAuth();
@@ -95,6 +96,14 @@ function NavBar() {
             >
               Goals
             </Link>
+            <Link
+              to="/insights"
+              style={linkStyle}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              Insights
+            </Link>
             <button
               onClick={signOut}
               style={{
@@ -155,6 +164,11 @@ function AppContent() {
           <Route path="/goals" element={
             <ProtectedRoute>
               <Goals />
+            </ProtectedRoute>
+          } />
+          <Route path="/insights" element={
+            <ProtectedRoute>
+              <Insights />
             </ProtectedRoute>
           } />
         </Routes>

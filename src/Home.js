@@ -26,6 +26,7 @@ const MET_VALUES = {
 function Home() {
   const [workouts, setWorkouts] = useState([]);
   const [insights, setInsights] = useState(null);
+  const [comprehensiveInsights, setComprehensiveInsights] = useState(null);
   const [formData, setFormData] = useState({ type: '', duration: '', calories: '' });
   const [userProfile, setUserProfile] = useState(null);
   const [manualCalories, setManualCalories] = useState(false); // Track if user manually entered calories
@@ -34,6 +35,7 @@ function Home() {
   useEffect(() => {
     fetchWorkouts();
     fetchInsights();
+    fetchComprehensiveInsights();
     fetchProfile();
     fetchPlannedWorkouts();
   }, []);
@@ -66,6 +68,12 @@ function Home() {
     api.get('/insights')
       .then(response => setInsights(response.data))
       .catch(error => console.error('Error fetching insights:', error));
+  };
+
+  const fetchComprehensiveInsights = () => {
+    api.get('/insights/comprehensive')
+      .then(response => setComprehensiveInsights(response.data))
+      .catch(error => console.error('Error fetching comprehensive insights:', error));
   };
 
   const fetchPlannedWorkouts = () => {
@@ -307,6 +315,82 @@ function Home() {
       }}>
         Track, analyze, and achieve your fitness goals
       </p>
+
+      {/* Summary Cards */}
+      {comprehensiveInsights && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '20px',
+          flexWrap: 'wrap',
+          maxWidth: '900px',
+          margin: '0 auto 30px',
+          padding: '0 20px'
+        }}>
+          {/* Weekly Progress Card */}
+          {comprehensiveInsights.weekly_progress && (
+            <div style={{
+              padding: '20px',
+              backgroundColor: '#f5f5f5',
+              borderRadius: '8px',
+              border: '1px solid #e0e0e0',
+              minWidth: '200px',
+              textAlign: 'center'
+            }}>
+              <h4 style={{ margin: '0 0 10px', color: '#666' }}>Weekly Goal</h4>
+              <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#8b5cf6', margin: '0 0 5px' }}>
+                {comprehensiveInsights.weekly_progress.current}/{comprehensiveInsights.weekly_progress.target}
+              </p>
+              <p style={{ fontSize: '14px', color: '#888', margin: 0 }}>
+                {comprehensiveInsights.weekly_progress.unit}
+              </p>
+            </div>
+          )}
+
+          {/* Week Comparison Card */}
+          <div style={{
+            padding: '20px',
+            backgroundColor: '#f5f5f5',
+            borderRadius: '8px',
+            border: '1px solid #e0e0e0',
+            minWidth: '200px',
+            textAlign: 'center'
+          }}>
+            <h4 style={{ margin: '0 0 10px', color: '#666' }}>vs Last Week</h4>
+            <p style={{
+              fontSize: '28px',
+              fontWeight: 'bold',
+              color: comprehensiveInsights.week_comparison?.workout_change_percent >= 0 ? '#10b981' : '#ef4444',
+              margin: '0 0 5px'
+            }}>
+              {comprehensiveInsights.week_comparison?.workout_change_percent >= 0 ? '+' : ''}
+              {comprehensiveInsights.week_comparison?.workout_change_percent?.toFixed(0)}%
+            </p>
+            <p style={{ fontSize: '14px', color: '#888', margin: 0 }}>
+              workouts
+            </p>
+          </div>
+
+          {/* Streak Card */}
+          <div style={{
+            padding: '20px',
+            backgroundColor: '#f5f5f5',
+            borderRadius: '8px',
+            border: '1px solid #e0e0e0',
+            minWidth: '200px',
+            textAlign: 'center'
+          }}>
+            <h4 style={{ margin: '0 0 10px', color: '#666' }}>Current Streak</h4>
+            <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#f59e0b', margin: '0 0 5px' }}>
+              {comprehensiveInsights.streak?.current_streak || 0}
+            </p>
+            <p style={{ fontSize: '14px', color: '#888', margin: 0 }}>
+              days
+            </p>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
         <select
           name="type"
