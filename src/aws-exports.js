@@ -5,7 +5,7 @@ const awsmobile = {
     "aws_project_region": "us-east-1",
     "aws_cognito_region": "us-east-1",
     "aws_user_pools_id": "us-east-1_fAO8zL6Gx",
-    "aws_user_pools_web_client_id": "1jceujjnlhrs39oinmovks8jcg",
+    "aws_user_pools_web_client_id": "2ufqqplj9s5n1p9e93is8c5b9h",
     "aws_content_delivery_bucket": "fitnesstracker-20260101230713-hostingbucket-dev",
     "aws_content_delivery_bucket_region": "us-east-1",
     "aws_content_delivery_url": "https://d3uiiot1rq7k51.cloudfront.net"
