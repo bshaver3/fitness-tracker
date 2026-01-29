@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from './api';
+import { useAuth } from './AuthContext';
 import './App.css';
 
 function Profile() {
+  const { profileComplete, refreshProfileStatus } = useAuth();
+  const navigate = useNavigate();
+  const [isNewProfile, setIsNewProfile] = useState(!profileComplete);
   const [profileData, setProfileData] = useState({
     heightFeet: '',
     heightInches: '',
@@ -24,21 +29,26 @@ function Profile() {
     api.get('/profile')
       .then(response => {
         if (response.data && Object.keys(response.data).length > 0) {
+          const profile = response.data;
           setProfileData({
-            heightFeet: response.data.height_feet || '',
-            heightInches: response.data.height_inches || '',
-            currentWeight: response.data.current_weight || '',
-            age: response.data.age || '',
-            sex: response.data.sex || '',
-            goals: response.data.goals || '',
-            targetWeight: response.data.target_weight || '',
-            weeklyTargetType: response.data.weekly_target_type || 'workouts',
-            weeklyTargetValue: response.data.weekly_target_value || '',
-            goalDeadline: response.data.goal_deadline || '',
-            workoutFrequency: response.data.workout_frequency || '',
-            activityLevel: response.data.activity_level || '',
-            gymExperience: response.data.gym_experience || ''
+            heightFeet: profile.height_feet || '',
+            heightInches: profile.height_inches || '',
+            currentWeight: profile.current_weight || '',
+            age: profile.age || '',
+            sex: profile.sex || '',
+            goals: profile.goals || '',
+            targetWeight: profile.target_weight || '',
+            weeklyTargetType: profile.weekly_target_type || 'workouts',
+            weeklyTargetValue: profile.weekly_target_value || '',
+            goalDeadline: profile.goal_deadline || '',
+            workoutFrequency: profile.workout_frequency || '',
+            activityLevel: profile.activity_level || '',
+            gymExperience: profile.gym_experience || ''
           });
+          // Check if profile has required fields filled
+          if (profile.height_feet && profile.current_weight && profile.age) {
+            setIsNewProfile(false);
+          }
         }
       })
       .catch(error => console.error('Error fetching profile:', error));
@@ -69,8 +79,14 @@ function Profile() {
     };
 
     api.post('/profile', backendData)
-      .then(() => {
-        alert('Profile saved successfully!');
+      .then(async () => {
+        await refreshProfileStatus();
+        if (isNewProfile) {
+          setIsNewProfile(false);
+          navigate('/');
+        } else {
+          alert('Profile updated successfully!');
+        }
       })
       .catch(error => {
         console.error('Error saving profile:', error);
@@ -90,7 +106,7 @@ function Profile() {
         marginBottom: '10px',
         letterSpacing: '-1px'
       }}>
-        Your Profile
+        {isNewProfile ? 'Create Your Profile' : 'Your Profile'}
       </h1>
       <p style={{
         color: '#666',
@@ -98,12 +114,23 @@ function Profile() {
         marginBottom: '30px',
         fontWeight: '500'
       }}>
-        Personalize your fitness experience
+        {isNewProfile
+          ? 'Complete your profile to get started with FitTrack'
+          : 'Update your fitness profile'}
       </p>
+      {isNewProfile && (
+        <p style={{
+          color: '#ef4444',
+          fontSize: '14px',
+          marginBottom: '20px'
+        }}>
+          * Required fields
+        </p>
+      )}
       <form onSubmit={handleSubmit} style={{ maxWidth: '600px', margin: '0 auto' }}>
 
         <div style={{ marginBottom: '20px' }}>
-          <h3>Height</h3>
+          <h3>Height {isNewProfile && <span style={{ color: '#ef4444' }}>*</span>}</h3>
           <div style={{ display: 'flex', gap: '10px' }}>
             <input
               name="heightFeet"
@@ -111,6 +138,7 @@ function Profile() {
               value={profileData.heightFeet}
               onChange={handleChange}
               placeholder="Feet"
+              required={isNewProfile}
               style={{ flex: 1, padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
             />
             <input
@@ -125,25 +153,27 @@ function Profile() {
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <h3>Current Weight (lbs)</h3>
+          <h3>Current Weight (lbs) {isNewProfile && <span style={{ color: '#ef4444' }}>*</span>}</h3>
           <input
             name="currentWeight"
             type="number"
             value={profileData.currentWeight}
             onChange={handleChange}
             placeholder="Weight in pounds"
+            required={isNewProfile}
             style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <h3>Age</h3>
+          <h3>Age {isNewProfile && <span style={{ color: '#ef4444' }}>*</span>}</h3>
           <input
             name="age"
             type="number"
             value={profileData.age}
             onChange={handleChange}
             placeholder="Age"
+            required={isNewProfile}
             style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
@@ -303,7 +333,7 @@ function Profile() {
         </div>
 
         <button type="submit" style={{ width: '100%', padding: '12px', fontSize: '16px', background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold', borderRadius: '4px', boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)', transition: 'all 0.3s ease' }}>
-          Save Profile
+          {isNewProfile ? 'Create Profile & Get Started' : 'Update Profile'}
         </button>
       </form>
     </div>

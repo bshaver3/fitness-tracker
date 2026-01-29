@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { fetchAuthSession, signIn, signUp, signOut, confirmSignUp, getCurrentUser } from 'aws-amplify/auth';
+import api from './api';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profileComplete, setProfileComplete] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -15,10 +17,29 @@ export function AuthProvider({ children }) {
     try {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
+      await checkProfileStatus();
     } catch (error) {
       setUser(null);
+      setProfileComplete(false);
     }
     setLoading(false);
+  }
+
+  async function checkProfileStatus() {
+    try {
+      const response = await api.get('/profile');
+      // Profile is complete if it exists and has required fields
+      const profile = response.data;
+      const isComplete = profile &&
+        profile.height_feet &&
+        profile.current_weight &&
+        profile.age;
+      setProfileComplete(isComplete);
+      return isComplete;
+    } catch (error) {
+      setProfileComplete(false);
+      return false;
+    }
   }
 
   async function handleSignIn(email, password) {
@@ -62,6 +83,7 @@ export function AuthProvider({ children }) {
     try {
       await signOut();
       setUser(null);
+      setProfileComplete(false);
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -79,11 +101,13 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     loading,
+    profileComplete,
     signIn: handleSignIn,
     signUp: handleSignUp,
     confirmSignUp: handleConfirmSignUp,
     signOut: handleSignOut,
-    getAuthToken
+    getAuthToken,
+    refreshProfileStatus: checkProfileStatus
   };
 
   return (
