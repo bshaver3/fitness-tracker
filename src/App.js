@@ -61,7 +61,7 @@ function NavBar() {
         alignItems: 'center',
         gap: '10px'
       }}>
-        <span style={{ fontSize: '32px' }}>💪</span>
+        <span style={{ fontSize: '32px' }}></span>
         <span>FitTrack</span>
       </div>
       <div style={{

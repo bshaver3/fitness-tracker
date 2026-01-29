@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import api from './api';
-import { Bar } from 'react-chartjs-2';
 import './App.css';
 
 // MET values for different workout types
@@ -25,7 +24,6 @@ const MET_VALUES = {
 
 function Home() {
   const [workouts, setWorkouts] = useState([]);
-  const [insights, setInsights] = useState(null);
   const [comprehensiveInsights, setComprehensiveInsights] = useState(null);
   const [formData, setFormData] = useState({ type: '', duration: '', calories: '' });
   const [userProfile, setUserProfile] = useState(null);
@@ -34,7 +32,6 @@ function Home() {
 
   useEffect(() => {
     fetchWorkouts();
-    fetchInsights();
     fetchComprehensiveInsights();
     fetchProfile();
     fetchPlannedWorkouts();
@@ -62,12 +59,6 @@ function Home() {
         setWorkouts(sortedWorkouts);
       })
       .catch(error => console.error('Error fetching workouts:', error));
-  };
-
-  const fetchInsights = () => {
-    api.get('/insights')
-      .then(response => setInsights(response.data))
-      .catch(error => console.error('Error fetching insights:', error));
   };
 
   const fetchComprehensiveInsights = () => {
@@ -149,7 +140,7 @@ function Home() {
         setFormData({ type: '', duration: '', calories: '' });
         setManualCalories(false); // Reset manual flag for next workout
         fetchWorkouts();
-        fetchInsights();
+        fetchComprehensiveInsights();
       })
       .catch(error => console.error('Error logging workout:', error));
   };
@@ -158,7 +149,7 @@ function Home() {
     api.delete(`/workouts/${workoutId}`)
       .then(() => {
         fetchWorkouts();
-        fetchInsights();
+        fetchComprehensiveInsights();
       })
       .catch(error => console.error('Error deleting workout:', error));
   };
@@ -212,7 +203,7 @@ function Home() {
       })
       .then(() => {
         fetchWorkouts();
-        fetchInsights();
+        fetchComprehensiveInsights();
         fetchPlannedWorkouts();
         alert('Workout logged successfully!');
       })
@@ -229,67 +220,6 @@ function Home() {
           fetchPlannedWorkouts();
         })
         .catch(error => console.error('Error dismissing planned workout:', error));
-    }
-  };
-
-  const chartData = {
-    labels: workouts.map(w => w.type),
-    datasets: [{
-      label: 'Calories Burned',
-      data: workouts.map(w => w.calories),
-      backgroundColor: 'rgba(139, 92, 246, 0.7)'
-    }]
-  };
-
-  const workoutsByDateAndType = workouts.reduce((acc, workout) => {
-    if (workout.timestamp) {
-      const date = new Date(workout.timestamp).toLocaleDateString();
-      if (!acc[date]) {
-        acc[date] = {};
-      }
-      if (!acc[date][workout.type]) {
-        acc[date][workout.type] = 0;
-      }
-      acc[date][workout.type] += workout.calories;
-    }
-    return acc;
-  }, {});
-
-  const sortedDates = Object.keys(workoutsByDateAndType).sort((a, b) => new Date(a) - new Date(b));
-
-  const workoutTypes = [...new Set(workouts.map(w => w.type))];
-
-  const colors = [
-    'rgba(139, 92, 246, 0.7)',    // Purple
-    'rgba(168, 85, 247, 0.7)',    // Bright Purple
-    'rgba(126, 34, 206, 0.7)',    // Deep Purple
-    'rgba(16, 185, 129, 0.7)',    // Emerald
-    'rgba(59, 130, 246, 0.7)',    // Blue
-    'rgba(236, 72, 153, 0.7)'     // Pink
-  ];
-
-  const timeChartData = {
-    labels: sortedDates,
-    datasets: workoutTypes.map((type, index) => ({
-      label: type,
-      data: sortedDates.map(date => workoutsByDateAndType[date][type] || 0),
-      backgroundColor: colors[index % colors.length]
-    }))
-  };
-
-  const stackedOptions = {
-    plugins: {
-      legend: {
-        display: false
-      }
-    },
-    scales: {
-      x: {
-        stacked: true
-      },
-      y: {
-        stacked: true
-      }
     }
   };
 
@@ -595,64 +525,6 @@ function Home() {
           </li>
         ))}
       </ul>
-      <h2 style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        fontSize: '32px',
-        fontWeight: '800',
-        marginTop: '40px',
-        marginBottom: '20px',
-        letterSpacing: '-0.5px'
-      }}>
-        Insights
-      </h2>
-      {insights && (
-        <div style={{
-          padding: '15px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '4px',
-          border: '1px solid #e0e0e0',
-          maxWidth: '600px',
-          margin: '10px auto',
-          fontSize: '16px'
-        }}>
-          {insights.message}
-        </div>
-      )}
-      <div style={{ display: 'flex', justifyContent: 'space-around', gap: '20px', padding: '20px' }}>
-        <div style={{ flex: 1 }}>
-          <h2 style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            fontSize: '24px',
-            fontWeight: '800',
-            marginBottom: '20px',
-            letterSpacing: '-0.5px'
-          }}>
-            Calories by Workout Type
-          </h2>
-          <Bar data={chartData} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <h2 style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            fontSize: '24px',
-            fontWeight: '800',
-            marginBottom: '20px',
-            letterSpacing: '-0.5px'
-          }}>
-            Workouts Over Time
-          </h2>
-          <Bar data={timeChartData} options={stackedOptions} />
-        </div>
-      </div>
     </div>
   );
 }
