@@ -43,14 +43,20 @@ export function AuthProvider({ children }) {
   }
 
   async function handleSignIn(email, password) {
+    setLoading(true);
     try {
       const result = await signIn({ username: email, password });
       if (result.isSignedIn) {
-        await checkUser();
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+        await checkProfileStatus();
+        setLoading(false);
         return { success: true };
       }
+      setLoading(false);
       return { success: false, nextStep: result.nextStep };
     } catch (error) {
+      setLoading(false);
       return { success: false, error: error.message };
     }
   }

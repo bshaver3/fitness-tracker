@@ -1,8 +1,9 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
+  const { user, loading, profileComplete } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -21,6 +22,11 @@ function ProtectedRoute({ children }) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // If profile is not complete and we're not already on the profile page, redirect
+  if (!profileComplete && location.pathname !== '/profile') {
+    return <Navigate to="/profile" replace />;
   }
 
   return children;
