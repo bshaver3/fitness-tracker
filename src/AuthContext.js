@@ -1,31 +1,24 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { fetchAuthSession, signIn, signUp, signOut, confirmSignUp, getCurrentUser } from 'aws-amplify/auth';
 import api from './api';
 
 const AuthContext = createContext(null);
+const TRUE_VALUES = new Set(['1', 'true', 'yes', 'on']);
+const MOCK_AUTH = TRUE_VALUES.has((process.env.REACT_APP_MOCK_AUTH || '').trim().toLowerCase());
+const MOCK_USER = {
+  username: 'local-dev-user',
+  userId: 'local-dev-user',
+  signInDetails: {
+    loginId: 'local@example.com'
+  }
+};
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [profileComplete, setProfileComplete] = useState(false);
 
-  useEffect(() => {
-    checkUser();
-  }, []);
-
-  async function checkUser() {
-    try {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-      await checkProfileStatus();
-    } catch (error) {
-      setUser(null);
-      setProfileComplete(false);
-    }
-    setLoading(false);
-  }
-
-  async function checkProfileStatus() {
+  const checkProfileStatus = useCallback(async () => {
     try {
       const response = await api.get('/profile');
       // Profile is complete if it exists and has required fields
@@ -40,10 +33,47 @@ export function AuthProvider({ children }) {
       setProfileComplete(false);
       return false;
     }
-  }
+  }, []);
+
+  const checkUser = useCallback(async () => {
+    if (MOCK_AUTH) {
+      setUser(MOCK_USER);
+      await checkProfileStatus();
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+      await checkProfileStatus();
+    } catch (error) {
+      setUser(null);
+      setProfileComplete(false);
+    }
+    setLoading(false);
+  }, [checkProfileStatus]);
+
+  useEffect(() => {
+    checkUser();
+  }, [checkUser]);
 
   async function handleSignIn(email, password) {
     setLoading(true);
+
+    if (MOCK_AUTH) {
+      setUser({
+        ...MOCK_USER,
+        username: email || MOCK_USER.username,
+        signInDetails: {
+          loginId: email || MOCK_USER.signInDetails.loginId
+        }
+      });
+      await checkProfileStatus();
+      setLoading(false);
+      return { success: true };
+    }
+
     try {
       const result = await signIn({ username: email, password });
       if (result.isSignedIn) {
@@ -62,6 +92,10 @@ export function AuthProvider({ children }) {
   }
 
   async function handleSignUp(email, password) {
+    if (MOCK_AUTH) {
+      return { success: true, autoConfirm: true };
+    }
+
     try {
       const result = await signUp({
         username: email,
@@ -77,6 +111,10 @@ export function AuthProvider({ children }) {
   }
 
   async function handleConfirmSignUp(email, code) {
+    if (MOCK_AUTH) {
+      return { success: true };
+    }
+
     try {
       await confirmSignUp({ username: email, confirmationCode: code });
       return { success: true };
@@ -86,6 +124,12 @@ export function AuthProvider({ children }) {
   }
 
   async function handleSignOut() {
+    if (MOCK_AUTH) {
+      setUser(null);
+      setProfileComplete(false);
+      return;
+    }
+
     try {
       await signOut();
       setUser(null);
@@ -96,6 +140,10 @@ export function AuthProvider({ children }) {
   }
 
   async function getAuthToken() {
+    if (MOCK_AUTH) {
+      return null;
+    }
+
     try {
       const session = await fetchAuthSession();
       return session.tokens?.idToken?.toString() || null;

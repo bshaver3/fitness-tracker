@@ -1,5 +1,8 @@
 # Getting Started with Create React App
 
+<!-- Test change: practicing branch -> commit -> PR workflow -->
+
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
@@ -68,3 +71,13 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+Testing the PR workflow :) These changes to the README should not exist already
+
+
+Freshest of new lines to the README
+
+Newest freshest line to the README
+
+Test edit at 2:45pm - this line is brand new
+
