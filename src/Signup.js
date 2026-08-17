@@ -31,7 +31,16 @@ function Signup() {
     const result = await signUp(email, password);
 
     if (result.success) {
-      setStep('verify');
+      if (result.autoConfirm) {
+        const signInResult = await signIn(email, password);
+        if (signInResult.success) {
+          navigate('/');
+        } else {
+          navigate('/login');
+        }
+      } else {
+        setStep('verify');
+      }
     } else {
       setError(result.error || 'Failed to sign up');
     }
