@@ -7,15 +7,9 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontSize: '18px',
-        color: '#666'
-      }}>
-        Loading...
+      <div className="route-loading" role="status" aria-live="polite">
+        <span className="spinner" aria-hidden="true" />
+        Loading FitTrack…
       </div>
     );
   }

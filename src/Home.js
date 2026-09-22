@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import api from './api';
+import { useToast } from './ToastContext';
+import ConfirmDialog from './ConfirmDialog';
+import { IconTrash, IconCheck } from './Icons';
 import './App.css';
 
 // MET values for different workout types
@@ -22,13 +25,41 @@ const MET_VALUES = {
   'default': 5.0  // Default MET value if type not found
 };
 
+function formatTimestamp(timestamp) {
+  return new Date(timestamp).toLocaleString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'America/New_York',
+    timeZoneName: 'short'
+  });
+}
+
+function formatTime(timeString) {
+  if (!timeString) return null;
+  const [hours, minutes] = timeString.split(':');
+  const hour = parseInt(hours, 10);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minutes} ${ampm}`;
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function Home() {
+  const { showToast } = useToast();
   const [workouts, setWorkouts] = useState([]);
   const [comprehensiveInsights, setComprehensiveInsights] = useState(null);
   const [formData, setFormData] = useState({ type: '', duration: '', calories: '' });
   const [userProfile, setUserProfile] = useState(null);
-  const [manualCalories, setManualCalories] = useState(false); // Track if user manually entered calories
+  const [manualCalories, setManualCalories] = useState(false);
   const [plannedWorkouts, setPlannedWorkouts] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState(null);
 
   useEffect(() => {
     fetchWorkouts();
@@ -50,11 +81,8 @@ function Home() {
   const fetchWorkouts = () => {
     api.get('/workouts')
       .then(response => {
-        // Sort workouts by timestamp (most recent first)
         const sortedWorkouts = response.data.sort((a, b) => {
-          const dateA = new Date(a.timestamp);
-          const dateB = new Date(b.timestamp);
-          return dateB - dateA; // Descending order (newest first)
+          return new Date(b.timestamp) - new Date(a.timestamp);
         });
         setWorkouts(sortedWorkouts);
       })
@@ -69,26 +97,18 @@ function Home() {
 
   const fetchPlannedWorkouts = () => {
     api.get('/planned-workouts')
-      .then(response => {
-        setPlannedWorkouts(response.data);
-      })
+      .then(response => setPlannedWorkouts(response.data))
       .catch(error => console.error('Error fetching planned workouts:', error));
   };
 
   const calculateCalories = (workoutType, duration, weightLbs) => {
     if (!workoutType || !duration || !weightLbs) return '';
 
-    // Convert weight from lbs to kg
     const weightKg = weightLbs * 0.453592;
-
-    // Convert duration from minutes to hours
     const durationHours = duration / 60;
-
-    // Find MET value for workout type (case insensitive)
     const typeLower = workoutType.toLowerCase();
     let met = MET_VALUES['default'];
 
-    // Check if workout type matches any MET value key
     for (const [key, value] of Object.entries(MET_VALUES)) {
       if (typeLower.includes(key) || key.includes(typeLower)) {
         met = value;
@@ -96,23 +116,19 @@ function Home() {
       }
     }
 
-    // Calculate calories: MET * weightKg * durationHours
-    const calories = Math.round(met * weightKg * durationHours);
-    return calories;
+    return Math.round(met * weightKg * durationHours);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     const updatedFormData = { ...formData, [name]: value };
 
-    // If user manually enters calories, mark it as manual
     if (name === 'calories') {
       setManualCalories(true);
       setFormData(updatedFormData);
       return;
     }
 
-    // Auto-calculate calories when type or duration changes, but only if user hasn't manually entered calories
     if ((name === 'type' || name === 'duration') && userProfile?.current_weight && !manualCalories) {
       const suggestedCalories = calculateCalories(
         name === 'type' ? value : formData.type,
@@ -120,7 +136,6 @@ function Home() {
         userProfile.current_weight
       );
 
-      // Update calories with suggestion
       if (suggestedCalories) {
         updatedFormData.calories = suggestedCalories;
       }
@@ -131,6 +146,7 @@ function Home() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setSubmitting(true);
     api.post('/workouts', {
       type: formData.type,
       duration: parseInt(formData.duration),
@@ -138,11 +154,16 @@ function Home() {
     })
       .then(() => {
         setFormData({ type: '', duration: '', calories: '' });
-        setManualCalories(false); // Reset manual flag for next workout
+        setManualCalories(false);
         fetchWorkouts();
         fetchComprehensiveInsights();
+        showToast('Workout logged', 'success');
       })
-      .catch(error => console.error('Error logging workout:', error));
+      .catch(error => {
+        console.error('Error logging workout:', error);
+        showToast('Error logging workout. Please try again.', 'error');
+      })
+      .finally(() => setSubmitting(false));
   };
 
   const deleteWorkout = (workoutId) => {
@@ -151,311 +172,202 @@ function Home() {
         fetchWorkouts();
         fetchComprehensiveInsights();
       })
-      .catch(error => console.error('Error deleting workout:', error));
+      .catch(error => {
+        console.error('Error deleting workout:', error);
+        showToast('Error deleting workout. Please try again.', 'error');
+      });
   };
 
   const getPastPlannedWorkouts = () => {
     const now = new Date();
     return plannedWorkouts.filter(workout => {
-      if (workout.completed) return false; // Skip already completed workouts
+      if (workout.completed) return false;
 
       const workoutDate = new Date(workout.planned_date);
 
-      // If there's a time, use it for comparison
       if (workout.planned_time) {
         const [hours, minutes] = workout.planned_time.split(':');
-        workoutDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        workoutDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
         return workoutDate < now;
       }
 
-      // If no time specified, consider it past if the date is before today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       workoutDate.setHours(0, 0, 0, 0);
       return workoutDate < today;
-    }).sort((a, b) => {
-      // Sort by date, most recent first
-      const dateA = new Date(a.planned_date);
-      const dateB = new Date(b.planned_date);
-      return dateB - dateA;
-    });
+    }).sort((a, b) => new Date(b.planned_date) - new Date(a.planned_date));
   };
 
   const quickLogPlannedWorkout = (plannedWorkout) => {
-    // Calculate calories based on user profile
     const calories = userProfile?.current_weight
       ? calculateCalories(plannedWorkout.workout_type, plannedWorkout.planned_duration, userProfile.current_weight)
       : '';
 
-    // Create actual workout
     api.post('/workouts', {
       type: plannedWorkout.workout_type,
       duration: plannedWorkout.planned_duration,
       calories: calories || 0
     })
-      .then((response) => {
-        // Mark planned workout as completed
-        return api.put(`/planned-workouts/${plannedWorkout.id}`, {
-          ...plannedWorkout,
-          completed: true,
-          completed_workout_id: response.data.id
-        });
-      })
+      .then((response) => api.put(`/planned-workouts/${plannedWorkout.id}`, {
+        ...plannedWorkout,
+        completed: true,
+        completed_workout_id: response.data.id
+      }))
       .then(() => {
         fetchWorkouts();
         fetchComprehensiveInsights();
         fetchPlannedWorkouts();
-        alert('Workout logged successfully!');
+        showToast('Workout logged', 'success');
       })
       .catch(error => {
         console.error('Error logging planned workout:', error);
-        alert('Error logging workout. Please try again.');
+        showToast('Error logging workout. Please try again.', 'error');
       });
   };
 
   const dismissPlannedWorkout = (plannedWorkoutId) => {
-    if (window.confirm('Are you sure you want to dismiss this planned workout?')) {
-      api.delete(`/planned-workouts/${plannedWorkoutId}`)
-        .then(() => {
-          fetchPlannedWorkouts();
-        })
-        .catch(error => console.error('Error dismissing planned workout:', error));
-    }
+    api.delete(`/planned-workouts/${plannedWorkoutId}`)
+      .then(() => fetchPlannedWorkouts())
+      .catch(error => {
+        console.error('Error dismissing planned workout:', error);
+        showToast('Error dismissing workout. Please try again.', 'error');
+      });
   };
 
-  return (
-    <div className="App">
-      <h1 style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        fontSize: '48px',
-        fontWeight: '900',
-        marginBottom: '10px',
-        letterSpacing: '-1px'
-      }}>
-        Your Fitness Journey
-      </h1>
-      <p style={{
-        color: '#666',
-        fontSize: '18px',
-        marginBottom: '30px',
-        fontWeight: '500'
-      }}>
-        Track, analyze, and achieve your fitness goals
-      </p>
+  const handleConfirm = () => {
+    if (!confirmTarget) return;
+    if (confirmTarget.type === 'delete-workout') {
+      deleteWorkout(confirmTarget.id);
+    } else if (confirmTarget.type === 'dismiss-planned') {
+      dismissPlannedWorkout(confirmTarget.id);
+    }
+    setConfirmTarget(null);
+  };
 
-      {/* Summary Cards */}
+  const pastPlannedWorkouts = getPastPlannedWorkouts();
+
+  return (
+    <div className="app-main">
+      <div className="page-header">
+        <h1 className="page-title">Your fitness journey</h1>
+        <p className="page-subtitle">Track, analyze, and achieve your fitness goals.</p>
+      </div>
+
       {comprehensiveInsights && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '20px',
-          flexWrap: 'wrap',
-          maxWidth: '900px',
-          margin: '0 auto 30px',
-          padding: '0 20px'
-        }}>
-          {/* Weekly Progress Card */}
+        <div className="stat-grid">
           {comprehensiveInsights.weekly_progress && (
-            <div style={{
-              padding: '20px',
-              backgroundColor: '#f5f5f5',
-              borderRadius: '8px',
-              border: '1px solid #e0e0e0',
-              minWidth: '200px',
-              textAlign: 'center'
-            }}>
-              <h4 style={{ margin: '0 0 10px', color: '#666' }}>Weekly Goal</h4>
-              <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#8b5cf6', margin: '0 0 5px' }}>
+            <div className="stat-card">
+              <p className="stat-label">Weekly goal</p>
+              <p className="stat-value">
                 {comprehensiveInsights.weekly_progress.current}/{comprehensiveInsights.weekly_progress.target}
               </p>
-              <p style={{ fontSize: '14px', color: '#888', margin: 0 }}>
-                {comprehensiveInsights.weekly_progress.unit}
-              </p>
+              <p className="stat-unit">{comprehensiveInsights.weekly_progress.unit}</p>
             </div>
           )}
 
-          {/* Week Comparison Card */}
-          <div style={{
-            padding: '20px',
-            backgroundColor: '#f5f5f5',
-            borderRadius: '8px',
-            border: '1px solid #e0e0e0',
-            minWidth: '200px',
-            textAlign: 'center'
-          }}>
-            <h4 style={{ margin: '0 0 10px', color: '#666' }}>vs Last Week</h4>
-            <p style={{
-              fontSize: '28px',
-              fontWeight: 'bold',
-              color: comprehensiveInsights.week_comparison?.workout_change_percent >= 0 ? '#10b981' : '#ef4444',
-              margin: '0 0 5px'
-            }}>
+          <div className="stat-card">
+            <p className="stat-label">vs last week</p>
+            <p className={`stat-value ${comprehensiveInsights.week_comparison?.workout_change_percent >= 0 ? 'positive' : 'negative'}`}>
               {comprehensiveInsights.week_comparison?.workout_change_percent >= 0 ? '+' : ''}
               {comprehensiveInsights.week_comparison?.workout_change_percent?.toFixed(0)}%
             </p>
-            <p style={{ fontSize: '14px', color: '#888', margin: 0 }}>
-              workouts
-            </p>
+            <p className="stat-unit">workouts</p>
           </div>
 
-          {/* Streak Card */}
-          <div style={{
-            padding: '20px',
-            backgroundColor: '#f5f5f5',
-            borderRadius: '8px',
-            border: '1px solid #e0e0e0',
-            minWidth: '200px',
-            textAlign: 'center'
-          }}>
-            <h4 style={{ margin: '0 0 10px', color: '#666' }}>Current Streak</h4>
-            <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#f59e0b', margin: '0 0 5px' }}>
-              {comprehensiveInsights.streak?.current_streak || 0}
-            </p>
-            <p style={{ fontSize: '14px', color: '#888', margin: 0 }}>
-              days
-            </p>
+          <div className="stat-card">
+            <p className="stat-label">Current streak</p>
+            <p className="stat-value">{comprehensiveInsights.streak?.current_streak || 0}</p>
+            <p className="stat-unit">days</p>
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
-        <select
-          name="type"
-          value={formData.type}
-          onChange={handleChange}
-          style={{ padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
-          required
-        >
-          <option value="" style={{ padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
-          required>Select Workout Type</option>
-          {Object.keys(MET_VALUES)
-            .filter(key => key !== 'default')
-            .sort()
-            .map(workoutType => (
-              <option key={workoutType} value={workoutType}>
-                {workoutType.charAt(0).toUpperCase() + workoutType.slice(1)}
-              </option>
-            ))}
-        </select>
-        <input
-          name="duration"
-          type="number"
-          value={formData.duration}
-          onChange={handleChange}
-          placeholder="Duration (min)"
-          style={{ padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
-          required
-        />
-        <input
-          name="calories"
-          type="number"
-          value={formData.calories}
-          onChange={handleChange}
-          placeholder={userProfile ? "Calories (auto-calculated)" : "Calories"}
-          title="Calories are auto-calculated based on your profile. You can override this value."
-          style={{ padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
-          required
-        />
-        <button type="submit" style={{ padding: '10px 20px', fontSize: '14px', borderRadius: '4px', background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)', transition: 'all 0.3s ease' }}>
-          Log Workout
+      <form onSubmit={handleSubmit} className="quick-log-form">
+        <div className="field">
+          <label className="field-label" htmlFor="workout-type">Workout type</label>
+          <select
+            id="workout-type"
+            className="select"
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select workout type</option>
+            {Object.keys(MET_VALUES)
+              .filter(key => key !== 'default')
+              .sort()
+              .map(workoutType => (
+                <option key={workoutType} value={workoutType}>
+                  {capitalize(workoutType)}
+                </option>
+              ))}
+          </select>
+        </div>
+        <div className="field">
+          <label className="field-label" htmlFor="workout-duration">Duration (min)</label>
+          <input
+            id="workout-duration"
+            className="input"
+            name="duration"
+            type="number"
+            min="1"
+            value={formData.duration}
+            onChange={handleChange}
+            placeholder="30"
+            required
+          />
+        </div>
+        <div className="field">
+          <label className="field-label" htmlFor="workout-calories">Calories</label>
+          <input
+            id="workout-calories"
+            className="input"
+            name="calories"
+            type="number"
+            min="0"
+            value={formData.calories}
+            onChange={handleChange}
+            placeholder={userProfile ? 'Auto-calculated' : 'Calories'}
+            title="Calories are auto-calculated based on your profile. You can override this value."
+            required
+          />
+        </div>
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? 'Logging…' : 'Log workout'}
         </button>
       </form>
 
-      {/* Past Planned Workouts Section */}
-      {getPastPlannedWorkouts().length > 0 && (
+      {pastPlannedWorkouts.length > 0 && (
         <>
-          <h2 style={{
-            background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            fontSize: '32px',
-            fontWeight: '800',
-            marginTop: '40px',
-            marginBottom: '20px',
-            letterSpacing: '-0.5px'
-          }}>
-            Missed Workouts
-          </h2>
-          <p style={{
-            color: '#666',
-            fontSize: '16px',
-            marginBottom: '20px',
-            maxWidth: '600px',
-            margin: '0 auto 20px'
-          }}>
-            You have {getPastPlannedWorkouts().length} planned workout{getPastPlannedWorkouts().length !== 1 ? 's' : ''} that {getPastPlannedWorkouts().length !== 1 ? 'have' : 'has'} passed. Log them or dismiss them.
+          <h2 className="section-heading">Missed workouts</h2>
+          <p className="page-subtitle" style={{ marginBottom: 'var(--space-4)' }}>
+            You have {pastPlannedWorkouts.length} planned workout{pastPlannedWorkouts.length !== 1 ? 's' : ''} that {pastPlannedWorkouts.length !== 1 ? 'have' : 'has'} passed. Log them or dismiss them.
           </p>
-          <ul style={{ listStyle: 'none', padding: 0, maxWidth: '600px', margin: '0 auto 20px' }}>
-            {getPastPlannedWorkouts().map((workout) => (
-              <li key={workout.id} style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '15px',
-                marginBottom: '10px',
-                backgroundColor: '#fff3e0',
-                borderRadius: '4px',
-                border: '2px solid #fb923c',
-                boxShadow: '0 2px 8px rgba(251, 146, 60, 0.2)'
-              }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '4px', color: '#333' }}>
-                    {workout.workout_type.charAt(0).toUpperCase() + workout.workout_type.slice(1)}
-                  </div>
-                  <div style={{ color: '#666', fontSize: '14px' }}>
+          <ul className="item-list" style={{ marginBottom: 'var(--space-8)' }}>
+            {pastPlannedWorkouts.map((workout) => (
+              <li key={workout.id} className="item-row item-row--flagged">
+                <div className="item-main">
+                  <span className="item-title">{capitalize(workout.workout_type)}</span>
+                  <span className="item-meta">
                     {new Date(workout.planned_date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-                    {workout.planned_time && ` at ${(() => {
-                      const [hours, minutes] = workout.planned_time.split(':');
-                      const hour = parseInt(hours);
-                      const ampm = hour >= 12 ? 'PM' : 'AM';
-                      const displayHour = hour % 12 || 12;
-                      return `${displayHour}:${minutes} ${ampm}`;
-                    })()}`}
-                  </div>
-                  <div style={{ color: '#666', fontSize: '14px' }}>
-                    Duration: {workout.planned_duration} minutes
-                  </div>
-                  {workout.notes && (
-                    <div style={{ marginTop: '6px', fontSize: '13px', fontStyle: 'italic', color: '#555' }}>
-                      {workout.notes}
-                    </div>
-                  )}
+                    {workout.planned_time && ` at ${formatTime(workout.planned_time)}`}
+                    {' · '}{workout.planned_duration} min
+                  </span>
+                  {workout.notes && <span className="item-note">{workout.notes}</span>}
                 </div>
-                <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
+                <div className="item-actions">
                   <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
                     onClick={() => quickLogPlannedWorkout(workout)}
-                    style={{
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                      color: 'white',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '8px 16px',
-                      borderRadius: '4px',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
-                      transition: 'all 0.3s ease',
-                      whiteSpace: 'nowrap'
-                    }}
                   >
-                    Log Now
+                    <IconCheck /> Log now
                   </button>
                   <button
-                    onClick={() => dismissPlannedWorkout(workout.id)}
-                    style={{
-                      backgroundColor: '#ff4444',
-                      color: 'white',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '6px 12px',
-                      borderRadius: '4px',
-                      fontSize: '13px',
-                      fontWeight: 'bold'
-                    }}
+                    type="button"
+                    className="btn btn-danger btn-sm"
+                    onClick={() => setConfirmTarget({ type: 'dismiss-planned', id: workout.id })}
                   >
                     Dismiss
                   </button>
@@ -466,65 +378,49 @@ function Home() {
         </>
       )}
 
-      <h2 style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        fontSize: '32px',
-        fontWeight: '800',
-        marginTop: '40px',
-        marginBottom: '20px',
-        letterSpacing: '-0.5px'
-      }}>
-        Your Workouts
-      </h2>
-      <ul style={{ listStyle: 'none', padding: 0, maxWidth: '600px', margin: '0 auto' }}>
-        {workouts.map((w, idx) => (
-          <li key={idx} style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '12px 15px',
-            marginBottom: '10px',
-            backgroundColor: '#f5f5f5',
-            borderRadius: '4px',
-            border: '1px solid #e0e0e0'
-          }}>
-            <span>
-              {w.type.charAt(0).toUpperCase() + w.type.slice(1)} - {w.duration} min - {w.calories} cal
-              {w.timestamp && (
-                <span style={{ marginLeft: '8px', color: '#666', fontSize: '13px' }}>
-                  {new Date(w.timestamp).toLocaleString('en-US', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    timeZone: 'America/New_York',
-                    timeZoneName: 'short'
-                  })}
+      <h2 className="section-heading">Your workouts</h2>
+      {workouts.length === 0 ? (
+        <div className="empty-state">
+          <p>No workouts logged yet</p>
+          <p>Log your first workout above to start building your streak.</p>
+        </div>
+      ) : (
+        <ul className="item-list">
+          {workouts.map((w) => (
+            <li key={w.id} className="item-row">
+              <div className="item-main">
+                <span className="item-title">
+                  {capitalize(w.type)} · {w.duration} min · {w.calories} cal
                 </span>
-              )}
-            </span>
-            <button
-              onClick={() => deleteWorkout(w.id)}
-              style={{
-                backgroundColor: '#ff4444',
-                color: 'white',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '6px 12px',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: 'bold'
-              }}
-            >
-              ✕
-            </button>
-          </li>
-        ))}
-      </ul>
+                {w.timestamp && <span className="item-meta">{formatTimestamp(w.timestamp)}</span>}
+              </div>
+              <div className="item-actions">
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-icon"
+                  aria-label={`Delete ${w.type} workout`}
+                  onClick={() => setConfirmTarget({ type: 'delete-workout', id: w.id })}
+                >
+                  <IconTrash />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <ConfirmDialog
+        open={!!confirmTarget}
+        title={confirmTarget?.type === 'delete-workout' ? 'Delete this workout?' : 'Dismiss this planned workout?'}
+        message={
+          confirmTarget?.type === 'delete-workout'
+            ? 'This will permanently remove the logged workout and its calories from your history.'
+            : 'This will remove the planned workout without logging it as completed.'
+        }
+        confirmLabel={confirmTarget?.type === 'delete-workout' ? 'Delete' : 'Dismiss'}
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   );
 }

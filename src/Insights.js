@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import api from './api';
 import { Line, Doughnut } from 'react-chartjs-2';
+import { IconArrowRight } from './Icons';
 import './App.css';
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 function Insights() {
   const [insights, setInsights] = useState(null);
@@ -36,51 +41,44 @@ function Insights() {
     }
   };
 
-  const gradientTitle = {
-    background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-  };
-
-  const cardStyle = {
-    padding: '20px',
-    backgroundColor: '#f5f5f5',
-    borderRadius: '8px',
-    border: '1px solid #e0e0e0',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-  };
-
   if (loading) {
     return (
-      <div className="App">
-        <h1 style={{ ...gradientTitle, fontSize: '48px', fontWeight: '900' }}>
-          Loading Insights...
-        </h1>
+      <div className="app-main">
+        <div className="page-header">
+          <h1 className="page-title">Your fitness insights</h1>
+        </div>
+        <div className="panel-grid">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="skeleton" style={{ height: '140px' }} />
+          ))}
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="App">
-        <h1 style={{ ...gradientTitle, fontSize: '48px', fontWeight: '900' }}>
-          Insights
-        </h1>
-        <p style={{ color: '#ef4444' }}>{error}</p>
+      <div className="app-main">
+        <div className="page-header">
+          <h1 className="page-title">Insights</h1>
+        </div>
+        <div className="banner banner-error" role="alert">{error}</div>
       </div>
     );
   }
+
+  const accentRGB = '232, 73, 31';
+  const successRGB = '38, 138, 89';
 
   const workoutFrequencyData = {
     labels: insights?.workout_frequency?.map(p => p.date) || [],
     datasets: [{
       label: 'Workouts',
       data: insights?.workout_frequency?.map(p => p.count) || [],
-      borderColor: '#8b5cf6',
-      backgroundColor: 'rgba(139, 92, 246, 0.1)',
+      borderColor: `rgb(${accentRGB})`,
+      backgroundColor: `rgba(${accentRGB}, 0.12)`,
       fill: true,
-      tension: 0.4,
+      tension: 0.35,
     }]
   };
 
@@ -89,268 +87,179 @@ function Insights() {
     datasets: [{
       label: 'Calories Burned',
       data: insights?.calories_over_time?.map(p => p.calories) || [],
-      borderColor: '#10b981',
-      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+      borderColor: `rgb(${successRGB})`,
+      backgroundColor: `rgba(${successRGB}, 0.12)`,
       fill: true,
-      tension: 0.4,
+      tension: 0.35,
     }]
   };
 
   const workoutTypeColors = [
-    'rgba(139, 92, 246, 0.8)',
-    'rgba(168, 85, 247, 0.8)',
-    'rgba(126, 34, 206, 0.8)',
-    'rgba(16, 185, 129, 0.8)',
-    'rgba(59, 130, 246, 0.8)',
-    'rgba(236, 72, 153, 0.8)',
-    'rgba(245, 158, 11, 0.8)',
-    'rgba(239, 68, 68, 0.8)',
+    'rgba(232, 73, 31, 0.85)',
+    'rgba(255, 106, 61, 0.85)',
+    'rgba(198, 56, 21, 0.85)',
+    'rgba(38, 138, 89, 0.85)',
+    'rgba(198, 122, 28, 0.85)',
+    'rgba(122, 66, 45, 0.85)',
+    'rgba(74, 66, 60, 0.85)',
+    'rgba(180, 170, 161, 0.85)',
   ];
 
   const workoutTypeData = {
-    labels: insights?.workout_type_breakdown?.map(t =>
-      t.type.charAt(0).toUpperCase() + t.type.slice(1)
-    ) || [],
+    labels: insights?.workout_type_breakdown?.map(t => capitalize(t.type)) || [],
     datasets: [{
       data: insights?.workout_type_breakdown?.map(t => t.count) || [],
       backgroundColor: workoutTypeColors,
       borderWidth: 2,
-      borderColor: '#fff',
+      borderColor: '#fffdfb',
     }]
   };
 
   const lineChartOptions = {
     responsive: true,
-    plugins: {
-      legend: { display: false },
-    },
-    scales: {
-      y: { beginAtZero: true },
-    },
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true } },
   };
 
   const doughnutOptions = {
     responsive: true,
-    plugins: {
-      legend: {
-        position: 'bottom',
-      },
-    },
+    plugins: { legend: { position: 'bottom' } },
   };
 
   const { week_comparison, streak, consistency_stats, weekly_progress } = insights || {};
+  const progressComplete = weekly_progress && weekly_progress.percentage >= 100;
 
   return (
-    <div className="App">
-      <h1 style={{ ...gradientTitle, fontSize: '48px', fontWeight: '900', marginBottom: '10px' }}>
-        Your Fitness Insights
-      </h1>
-      <p style={{ color: '#666', fontSize: '18px', marginBottom: '30px', fontWeight: '500' }}>
-        Track your progress and discover your fitness patterns
-      </p>
+    <div className="app-main">
+      <div className="page-header">
+        <h1 className="page-title">Your fitness insights</h1>
+        <p className="page-subtitle">Track your progress and discover your fitness patterns.</p>
+      </div>
 
-      {/* Summary Cards Row */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '20px',
-        maxWidth: '1200px',
-        margin: '0 auto 40px',
-        padding: '0 20px'
-      }}>
-        {/* Weekly Goal Progress Card */}
+      <div className="stat-grid" style={{ marginBottom: 'var(--space-10)' }}>
         {weekly_progress && (
-          <div style={cardStyle}>
-            <h3 style={{ margin: '0 0 15px', color: '#333' }}>Weekly Goal</h3>
-            <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#8b5cf6', margin: '0 0 10px' }}>
-              {weekly_progress.current} / {weekly_progress.target}
-            </p>
-            <p style={{ color: '#666', margin: '0 0 15px' }}>{weekly_progress.unit}</p>
-            <div style={{
-              width: '100%',
-              height: '12px',
-              backgroundColor: '#e0e0e0',
-              borderRadius: '6px',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                width: `${weekly_progress.percentage}%`,
-                height: '100%',
-                background: weekly_progress.percentage >= 100
-                  ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                  : 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
-                transition: 'width 0.5s ease'
-              }}></div>
+          <div className="stat-card">
+            <p className="stat-label">Weekly goal</p>
+            <p className="stat-value">{weekly_progress.current} / {weekly_progress.target}</p>
+            <p className="stat-unit">{weekly_progress.unit}</p>
+            <div className="progress-track">
+              <div
+                className={`progress-fill${progressComplete ? ' complete' : ''}`}
+                style={{ transform: `scaleX(${weekly_progress.percentage / 100})` }}
+              />
             </div>
           </div>
         )}
 
-        {/* Week Comparison Card */}
-        <div style={cardStyle}>
-          <h3 style={{ margin: '0 0 15px', color: '#333' }}>This Week vs Last Week</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span>Workouts:</span>
-            <span style={{
-              fontWeight: 'bold',
-              color: week_comparison?.workout_change_percent >= 0 ? '#10b981' : '#ef4444'
-            }}>
-              {week_comparison?.this_week_workouts}
-              ({week_comparison?.workout_change_percent >= 0 ? '+' : ''}
-              {week_comparison?.workout_change_percent?.toFixed(0)}%)
-            </span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span>Duration:</span>
-            <span style={{
-              fontWeight: 'bold',
-              color: week_comparison?.duration_change_percent >= 0 ? '#10b981' : '#ef4444'
-            }}>
-              {week_comparison?.this_week_duration} min
-              ({week_comparison?.duration_change_percent >= 0 ? '+' : ''}
-              {week_comparison?.duration_change_percent?.toFixed(0)}%)
-            </span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>Calories:</span>
-            <span style={{
-              fontWeight: 'bold',
-              color: week_comparison?.calories_change_percent >= 0 ? '#10b981' : '#ef4444'
-            }}>
-              {week_comparison?.this_week_calories} cal
-              ({week_comparison?.calories_change_percent >= 0 ? '+' : ''}
-              {week_comparison?.calories_change_percent?.toFixed(0)}%)
-            </span>
-          </div>
+        <div className="stat-card">
+          <p className="stat-label">This week vs last week</p>
+          <dl className="kv-list" style={{ marginTop: 'var(--space-2)' }}>
+            <div className="kv-row" style={{ padding: '0.4rem 0', background: 'transparent' }}>
+              <dt>Workouts</dt>
+              <dd className={week_comparison?.workout_change_percent >= 0 ? 'stat-value positive' : 'stat-value negative'} style={{ fontSize: 'var(--step-sm)' }}>
+                {week_comparison?.this_week_workouts} ({week_comparison?.workout_change_percent >= 0 ? '+' : ''}{week_comparison?.workout_change_percent?.toFixed(0)}%)
+              </dd>
+            </div>
+            <div className="kv-row" style={{ padding: '0.4rem 0', background: 'transparent' }}>
+              <dt>Duration</dt>
+              <dd className={week_comparison?.duration_change_percent >= 0 ? 'stat-value positive' : 'stat-value negative'} style={{ fontSize: 'var(--step-sm)' }}>
+                {week_comparison?.this_week_duration} min ({week_comparison?.duration_change_percent >= 0 ? '+' : ''}{week_comparison?.duration_change_percent?.toFixed(0)}%)
+              </dd>
+            </div>
+            <div className="kv-row" style={{ padding: '0.4rem 0', background: 'transparent' }}>
+              <dt>Calories</dt>
+              <dd className={week_comparison?.calories_change_percent >= 0 ? 'stat-value positive' : 'stat-value negative'} style={{ fontSize: 'var(--step-sm)' }}>
+                {week_comparison?.this_week_calories} cal ({week_comparison?.calories_change_percent >= 0 ? '+' : ''}{week_comparison?.calories_change_percent?.toFixed(0)}%)
+              </dd>
+            </div>
+          </dl>
         </div>
 
-        {/* Streak Card */}
-        <div style={cardStyle}>
-          <h3 style={{ margin: '0 0 15px', color: '#333' }}>Workout Streak</h3>
-          <p style={{ fontSize: '48px', fontWeight: 'bold', color: '#f59e0b', margin: '0' }}>
-            {streak?.current_streak || 0}
-          </p>
-          <p style={{ color: '#666', margin: '5px 0 15px' }}>day streak</p>
-          <p style={{ fontSize: '14px', color: '#888', margin: 0 }}>
-            Longest streak: {streak?.longest_streak || 0} days
-          </p>
+        <div className="stat-card">
+          <p className="stat-label">Workout streak</p>
+          <p className="stat-value">{streak?.current_streak || 0}</p>
+          <p className="stat-unit">day streak</p>
+          <p className="stat-sub">Longest streak: {streak?.longest_streak || 0} days</p>
         </div>
       </div>
 
-      {/* Charts Section */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-        gap: '30px',
-        maxWidth: '1200px',
-        margin: '0 auto 40px',
-        padding: '0 20px'
-      }}>
-        {/* Workout Frequency Chart */}
-        <div style={cardStyle}>
-          <h3 style={{ ...gradientTitle, fontSize: '24px', fontWeight: '800', marginBottom: '20px' }}>
-            Workout Frequency (Last 8 Weeks)
-          </h3>
+      <div className="panel-grid">
+        <div className="panel">
+          <h3 className="panel-title">Workout frequency (last 8 weeks)</h3>
           <Line data={workoutFrequencyData} options={lineChartOptions} />
         </div>
-
-        {/* Calories Over Time Chart */}
-        <div style={cardStyle}>
-          <h3 style={{ ...gradientTitle, fontSize: '24px', fontWeight: '800', marginBottom: '20px' }}>
-            Calories Burned (Last 8 Weeks)
-          </h3>
+        <div className="panel">
+          <h3 className="panel-title">Calories burned (last 8 weeks)</h3>
           <Line data={caloriesOverTimeData} options={lineChartOptions} />
         </div>
       </div>
 
-      {/* Bottom Row: Type Breakdown and Stats */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-        gap: '30px',
-        maxWidth: '1200px',
-        margin: '0 auto 40px',
-        padding: '0 20px'
-      }}>
-        {/* Workout Type Breakdown */}
-        <div style={cardStyle}>
-          <h3 style={{ ...gradientTitle, fontSize: '24px', fontWeight: '800', marginBottom: '20px' }}>
-            Workout Type Breakdown
-          </h3>
+      <div className="panel-grid">
+        <div className="panel">
+          <h3 className="panel-title">Workout type breakdown</h3>
           {insights?.workout_type_breakdown?.length > 0 ? (
-            <div style={{ maxWidth: '300px', margin: '0 auto' }}>
+            <div style={{ maxWidth: '280px', margin: '0 auto' }}>
               <Doughnut data={workoutTypeData} options={doughnutOptions} />
             </div>
           ) : (
-            <p style={{ color: '#666', textAlign: 'center' }}>No workout data yet</p>
+            <div className="empty-state">
+              <p>No workout data yet</p>
+            </div>
           )}
         </div>
 
-        {/* Consistency Stats */}
-        <div style={cardStyle}>
-          <h3 style={{ ...gradientTitle, fontSize: '24px', fontWeight: '800', marginBottom: '20px' }}>
-            Consistency Stats
-          </h3>
-          <div style={{ display: 'grid', gap: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', backgroundColor: '#fff', borderRadius: '4px' }}>
-              <span>Total Workouts</span>
-              <span style={{ fontWeight: 'bold', color: '#8b5cf6' }}>{consistency_stats?.total_workouts || 0}</span>
+        <div className="panel">
+          <h3 className="panel-title">Consistency stats</h3>
+          <dl className="kv-list">
+            <div className="kv-row">
+              <dt>Total workouts</dt>
+              <dd>{consistency_stats?.total_workouts || 0}</dd>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', backgroundColor: '#fff', borderRadius: '4px' }}>
-              <span>Total Duration</span>
-              <span style={{ fontWeight: 'bold', color: '#8b5cf6' }}>{consistency_stats?.total_duration || 0} min</span>
+            <div className="kv-row">
+              <dt>Total duration</dt>
+              <dd>{consistency_stats?.total_duration || 0} min</dd>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', backgroundColor: '#fff', borderRadius: '4px' }}>
-              <span>Total Calories</span>
-              <span style={{ fontWeight: 'bold', color: '#8b5cf6' }}>{consistency_stats?.total_calories || 0} cal</span>
+            <div className="kv-row">
+              <dt>Total calories</dt>
+              <dd>{consistency_stats?.total_calories || 0} cal</dd>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', backgroundColor: '#fff', borderRadius: '4px' }}>
-              <span>Avg Workouts/Week</span>
-              <span style={{ fontWeight: 'bold', color: '#10b981' }}>{consistency_stats?.avg_workouts_per_week || 0}</span>
+            <div className="kv-row">
+              <dt>Avg workouts/week</dt>
+              <dd>{consistency_stats?.avg_workouts_per_week || 0}</dd>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', backgroundColor: '#fff', borderRadius: '4px' }}>
-              <span>Avg Duration/Workout</span>
-              <span style={{ fontWeight: 'bold', color: '#10b981' }}>{consistency_stats?.avg_duration_per_workout || 0} min</span>
+            <div className="kv-row">
+              <dt>Avg duration/workout</dt>
+              <dd>{consistency_stats?.avg_duration_per_workout || 0} min</dd>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', backgroundColor: '#fff', borderRadius: '4px' }}>
-              <span>Most Active Day</span>
-              <span style={{ fontWeight: 'bold', color: '#f59e0b' }}>{consistency_stats?.most_active_day || 'N/A'}</span>
+            <div className="kv-row">
+              <dt>Most active day</dt>
+              <dd>{consistency_stats?.most_active_day || 'N/A'}</dd>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', backgroundColor: '#fff', borderRadius: '4px' }}>
-              <span>Favorite Workout</span>
-              <span style={{ fontWeight: 'bold', color: '#f59e0b' }}>{consistency_stats?.favorite_workout_type || 'N/A'}</span>
+            <div className="kv-row">
+              <dt>Favorite workout</dt>
+              <dd>{consistency_stats?.favorite_workout_type ? capitalize(consistency_stats.favorite_workout_type) : 'N/A'}</dd>
             </div>
-          </div>
+          </dl>
         </div>
       </div>
 
-      {/* Weight Progress Section */}
       {userProfile?.target_weight && userProfile?.current_weight && (
-        <div style={{ maxWidth: '600px', margin: '0 auto 40px', padding: '0 20px' }}>
-          <div style={cardStyle}>
-            <h3 style={{ ...gradientTitle, fontSize: '24px', fontWeight: '800', marginBottom: '20px' }}>
-              Weight Progress
-            </h3>
-            <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
-              <div>
-                <p style={{ fontSize: '14px', color: '#666', margin: '0 0 5px' }}>Current</p>
-                <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#8b5cf6', margin: 0 }}>
-                  {userProfile.current_weight} lbs
-                </p>
-              </div>
-              <div style={{ alignSelf: 'center', fontSize: '24px', color: '#ccc' }}>→</div>
-              <div>
-                <p style={{ fontSize: '14px', color: '#666', margin: '0 0 5px' }}>Target</p>
-                <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#10b981', margin: 0 }}>
-                  {userProfile.target_weight} lbs
-                </p>
-              </div>
+        <div className="panel" style={{ maxWidth: '480px' }}>
+          <h3 className="panel-title">Weight progress</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', textAlign: 'center' }}>
+            <div>
+              <p className="stat-label">Current</p>
+              <p className="stat-value" style={{ fontSize: 'var(--step-xl)' }}>{userProfile.current_weight} lbs</p>
             </div>
-            <div style={{ marginTop: '20px' }}>
-              <p style={{ fontSize: '14px', color: '#666', textAlign: 'center' }}>
-                {Math.abs(userProfile.current_weight - userProfile.target_weight)} lbs to go
-              </p>
+            <span style={{ color: 'var(--ink-300)' }}><IconArrowRight /></span>
+            <div>
+              <p className="stat-label">Target</p>
+              <p className="stat-value positive" style={{ fontSize: 'var(--step-xl)' }}>{userProfile.target_weight} lbs</p>
             </div>
           </div>
+          <p className="stat-sub" style={{ textAlign: 'center', marginTop: 'var(--space-4)' }}>
+            {Math.abs(userProfile.current_weight - userProfile.target_weight)} lbs to go
+          </p>
         </div>
       )}
     </div>
