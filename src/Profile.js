@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from './api';
 import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 import './App.css';
 
 function Profile() {
   const { profileComplete, refreshProfileStatus } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [isNewProfile, setIsNewProfile] = useState(!profileComplete);
+  const [saving, setSaving] = useState(false);
   const [profileData, setProfileData] = useState({
     heightFeet: '',
     heightInches: '',
@@ -60,6 +63,7 @@ function Profile() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setSaving(true);
 
     // Convert to backend field names (user_id is set by backend from auth token)
     const backendData = {
@@ -85,147 +89,132 @@ function Profile() {
           setIsNewProfile(false);
           navigate('/');
         } else {
-          alert('Profile updated successfully!');
+          showToast('Profile updated', 'success');
         }
       })
       .catch(error => {
         console.error('Error saving profile:', error);
-        alert('Error saving profile. Please try again.');
-      });
+        showToast('Error saving profile. Please try again.', 'error');
+      })
+      .finally(() => setSaving(false));
   };
 
   return (
-    <div className="App">
-      <h1 style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        fontSize: '48px',
-        fontWeight: '900',
-        marginBottom: '10px',
-        letterSpacing: '-1px'
-      }}>
-        {isNewProfile ? 'Create Your Profile' : 'Your Profile'}
-      </h1>
-      <p style={{
-        color: '#666',
-        fontSize: '18px',
-        marginBottom: '30px',
-        fontWeight: '500'
-      }}>
-        {isNewProfile
-          ? 'Complete your profile to get started with FitTrack'
-          : 'Update your fitness profile'}
-      </p>
-      {isNewProfile && (
-        <p style={{
-          color: '#ef4444',
-          fontSize: '14px',
-          marginBottom: '20px'
-        }}>
-          * Required fields
+    <div className="app-main">
+      <div className="page-header">
+        <h1 className="page-title">{isNewProfile ? 'Create your profile' : 'Your profile'}</h1>
+        <p className="page-subtitle">
+          {isNewProfile
+            ? 'Complete your profile to get started with FitTrack.'
+            : 'Update your fitness profile.'}
         </p>
-      )}
-      <form onSubmit={handleSubmit} style={{ maxWidth: '600px', margin: '0 auto' }}>
+      </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Height {isNewProfile && <span style={{ color: '#ef4444' }}>*</span>}</h3>
-          <div style={{ display: 'flex', gap: '10px' }}>
+      <form onSubmit={handleSubmit} className="form-panel" style={{ maxWidth: '600px' }}>
+        {isNewProfile && (
+          <p className="field-hint" style={{ marginTop: 0, marginBottom: 'var(--space-5)' }}>
+            <span className="field-required">*</span> Required fields
+          </p>
+        )}
+
+        <div className="field">
+          <label className="field-label" htmlFor="heightFeet">
+            Height {isNewProfile && <span className="field-required">*</span>}
+          </label>
+          <div className="field-row">
             <input
+              id="heightFeet"
+              className="input"
               name="heightFeet"
               type="number"
               value={profileData.heightFeet}
               onChange={handleChange}
               placeholder="Feet"
               required={isNewProfile}
-              style={{ flex: 1, padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
             />
             <input
+              className="input"
               name="heightInches"
               type="number"
               value={profileData.heightInches}
               onChange={handleChange}
               placeholder="Inches"
-              style={{ flex: 1, padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
+              aria-label="Height (inches)"
             />
           </div>
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Current Weight (lbs) {isNewProfile && <span style={{ color: '#ef4444' }}>*</span>}</h3>
+        <div className="field">
+          <label className="field-label" htmlFor="currentWeight">
+            Current weight (lbs) {isNewProfile && <span className="field-required">*</span>}
+          </label>
           <input
+            id="currentWeight"
+            className="input"
             name="currentWeight"
             type="number"
             value={profileData.currentWeight}
             onChange={handleChange}
             placeholder="Weight in pounds"
             required={isNewProfile}
-            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Age {isNewProfile && <span style={{ color: '#ef4444' }}>*</span>}</h3>
+        <div className="field">
+          <label className="field-label" htmlFor="age">
+            Age {isNewProfile && <span className="field-required">*</span>}
+          </label>
           <input
+            id="age"
+            className="input"
             name="age"
             type="number"
             value={profileData.age}
             onChange={handleChange}
             placeholder="Age"
             required={isNewProfile}
-            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Sex</h3>
-          <select
-            name="sex"
-            value={profileData.sex}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
-          >
-            <option value="">Select...</option>
+        <div className="field">
+          <label className="field-label" htmlFor="sex">Sex</label>
+          <select id="sex" className="select" name="sex" value={profileData.sex} onChange={handleChange}>
+            <option value="">Select…</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
             <option value="other">Other</option>
           </select>
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Goals</h3>
-          <select
-            name="goals"
-            value={profileData.goals}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
-          >
-            <option value="">Select...</option>
-            <option value="lose-weight">Lose Weight</option>
-            <option value="gain-muscle">Gain Muscle</option>
-            <option value="maintain">Maintain Weight</option>
-            <option value="improve-endurance">Improve Endurance</option>
-            <option value="general-fitness">General Fitness</option>
+        <div className="field">
+          <label className="field-label" htmlFor="goals">Goals</label>
+          <select id="goals" className="select" name="goals" value={profileData.goals} onChange={handleChange}>
+            <option value="">Select…</option>
+            <option value="lose-weight">Lose weight</option>
+            <option value="gain-muscle">Gain muscle</option>
+            <option value="maintain">Maintain weight</option>
+            <option value="improve-endurance">Improve endurance</option>
+            <option value="general-fitness">General fitness</option>
           </select>
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Target Weight (lbs)</h3>
+        <div className="field">
+          <label className="field-label" htmlFor="targetWeight">Target weight (lbs)</label>
           <input
+            id="targetWeight"
+            className="input"
             name="targetWeight"
             type="number"
             value={profileData.targetWeight}
             onChange={handleChange}
             placeholder="Target weight in pounds"
-            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Weekly Target</h3>
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-            <label style={{ flex: 1 }}>
+        <div className="field">
+          <span className="field-label">Weekly target</span>
+          <div className="radio-row">
+            <label className="radio-option">
               <input
                 type="radio"
                 name="weeklyTargetType"
@@ -233,9 +222,9 @@ function Profile() {
                 checked={profileData.weeklyTargetType === 'workouts'}
                 onChange={handleChange}
               />
-              {' '}Number of Workouts
+              Number of workouts
             </label>
-            <label style={{ flex: 1 }}>
+            <label className="radio-option">
               <input
                 type="radio"
                 name="weeklyTargetType"
@@ -243,97 +232,80 @@ function Profile() {
                 checked={profileData.weeklyTargetType === 'duration'}
                 onChange={handleChange}
               />
-              {' '}Duration (minutes)
+              Duration (minutes)
             </label>
           </div>
           <input
+            className="input"
             name="weeklyTargetValue"
             type="number"
             value={profileData.weeklyTargetValue}
             onChange={handleChange}
             placeholder={profileData.weeklyTargetType === 'workouts' ? 'Number of workouts per week' : 'Total minutes per week'}
-            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
+            aria-label="Weekly target value"
           />
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Goal Deadline</h3>
+        <div className="field">
+          <label className="field-label" htmlFor="goalDeadline">Goal deadline</label>
           <input
+            id="goalDeadline"
+            className="input"
             name="goalDeadline"
             type="date"
             value={profileData.goalDeadline}
             onChange={handleChange}
-            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </div>
 
-        <h2 style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-          fontSize: '32px',
-          fontWeight: '800',
-          marginTop: '40px',
-          marginBottom: '20px',
-          letterSpacing: '-0.5px'
-        }}>
-          Lifestyle & Experience
+        <h2 className="section-heading" style={{ fontSize: 'var(--step-lg)', marginTop: 'var(--space-8)' }}>
+          Lifestyle &amp; experience
         </h2>
 
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Current Workout Frequency</h3>
-          <p style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>How many times per week are you currently working out?</p>
+        <div className="field">
+          <label className="field-label" htmlFor="workoutFrequency">Current workout frequency</label>
+          <p className="field-hint" style={{ marginTop: '-2px' }}>How many times per week are you currently working out?</p>
           <input
+            id="workoutFrequency"
+            className="input"
             name="workoutFrequency"
             type="number"
             value={profileData.workoutFrequency}
             onChange={handleChange}
             placeholder="Times per week"
-            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
             min="0"
             max="7"
           />
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Daily Activity Level</h3>
-          <p style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>Outside of workouts, how active is your daily routine?</p>
-          <select
-            name="activityLevel"
-            value={profileData.activityLevel}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
-          >
-            <option value="">Select...</option>
-            <option value="sedentary">Sedentary (Desk job, minimal movement)</option>
-            <option value="lightly-active">Lightly Active (Some walking/standing)</option>
-            <option value="moderately-active">Moderately Active (On feet most of day)</option>
-            <option value="very-active">Very Active (Physical job, lots of movement)</option>
-            <option value="extremely-active">Extremely Active (Heavy physical labor)</option>
+        <div className="field">
+          <label className="field-label" htmlFor="activityLevel">Daily activity level</label>
+          <p className="field-hint" style={{ marginTop: '-2px' }}>Outside of workouts, how active is your daily routine?</p>
+          <select id="activityLevel" className="select" name="activityLevel" value={profileData.activityLevel} onChange={handleChange}>
+            <option value="">Select…</option>
+            <option value="sedentary">Sedentary (desk job, minimal movement)</option>
+            <option value="lightly-active">Lightly active (some walking/standing)</option>
+            <option value="moderately-active">Moderately active (on feet most of day)</option>
+            <option value="very-active">Very active (physical job, lots of movement)</option>
+            <option value="extremely-active">Extremely active (heavy physical labor)</option>
           </select>
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <h3>Gym Experience Level</h3>
-          <p style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>How experienced are you with gym workouts and equipment?</p>
-          <select
-            name="gymExperience"
-            value={profileData.gymExperience}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
-          >
-            <option value="">Select...</option>
-            <option value="beginner">Beginner (New to working out)</option>
-            <option value="novice">Novice (Less than 6 months experience)</option>
-            <option value="intermediate">Intermediate (6 months - 2 years)</option>
-            <option value="advanced">Advanced (2-5 years)</option>
+        <div className="field">
+          <label className="field-label" htmlFor="gymExperience">Gym experience level</label>
+          <p className="field-hint" style={{ marginTop: '-2px' }}>How experienced are you with gym workouts and equipment?</p>
+          <select id="gymExperience" className="select" name="gymExperience" value={profileData.gymExperience} onChange={handleChange}>
+            <option value="">Select…</option>
+            <option value="beginner">Beginner (new to working out)</option>
+            <option value="novice">Novice (less than 6 months experience)</option>
+            <option value="intermediate">Intermediate (6 months – 2 years)</option>
+            <option value="advanced">Advanced (2–5 years)</option>
             <option value="expert">Expert (5+ years)</option>
           </select>
         </div>
 
-        <button type="submit" style={{ width: '100%', padding: '12px', fontSize: '16px', background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold', borderRadius: '4px', boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)', transition: 'all 0.3s ease' }}>
-          {isNewProfile ? 'Create Profile & Get Started' : 'Update Profile'}
+        <button type="submit" className="btn btn-primary btn-block" disabled={saving}>
+          {saving ? 'Saving…' : isNewProfile ? 'Create profile & get started' : 'Update profile'}
         </button>
       </form>
     </div>

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { IconAlert } from './Icons';
+import './App.css';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -25,88 +27,53 @@ function Login() {
     setLoading(false);
   };
 
-  const inputStyle = {
-    width: '100%',
-    padding: '12px',
-    fontSize: '16px',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-    marginBottom: '15px',
-    boxSizing: 'border-box'
-  };
-
-  const buttonStyle = {
-    width: '100%',
-    padding: '14px',
-    fontSize: '16px',
-    background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)'
-  };
-
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h1 style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        fontSize: '36px',
-        fontWeight: '900',
-        marginBottom: '10px',
-        textAlign: 'center'
-      }}>
-        Welcome Back
-      </h1>
-      <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
-        Sign in to your FitTrack account
-      </p>
+    <div className="auth-shell">
+      <div className="auth-card">
+        <h1 className="auth-title">Welcome back</h1>
+        <p className="auth-subtitle">Sign in to your FitTrack account</p>
 
-      {error && (
-        <div style={{
-          backgroundColor: '#fee2e2',
-          color: '#dc2626',
-          padding: '12px',
-          borderRadius: '4px',
-          marginBottom: '20px',
-          textAlign: 'center'
-        }}>
-          {error}
-        </div>
-      )}
+        {error && (
+          <div className="banner banner-error" role="alert">
+            <IconAlert />
+            <span>{error}</span>
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={inputStyle}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={inputStyle}
-          required
-        />
-        <button type="submit" style={buttonStyle} disabled={loading}>
-          {loading ? 'Signing in...' : 'Sign In'}
-        </button>
-      </form>
+        <form onSubmit={handleSubmit}>
+          <div className="field">
+            <label className="field-label" htmlFor="login-email">Email</label>
+            <input
+              id="login-email"
+              className="input"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="field">
+            <label className="field-label" htmlFor="login-password">Password</label>
+            <input
+              id="login-password"
+              className="input"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+            {loading ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
 
-      <p style={{ textAlign: 'center', marginTop: '20px', color: '#666' }}>
-        Don't have an account?{' '}
-        <Link to="/signup" style={{ color: '#8b5cf6', fontWeight: 'bold' }}>
-          Sign Up
-        </Link>
-      </p>
+        <p className="auth-footer">
+          Don't have an account? <Link to="/signup">Sign up</Link>
+        </p>
+      </div>
     </div>
   );
 }

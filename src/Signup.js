@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { IconAlert } from './Icons';
+import './App.css';
 
 function Signup() {
   const [email, setEmail] = useState('');
@@ -68,115 +70,90 @@ function Signup() {
     setLoading(false);
   };
 
-  const inputStyle = {
-    width: '100%',
-    padding: '12px',
-    fontSize: '16px',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-    marginBottom: '15px',
-    boxSizing: 'border-box'
-  };
-
-  const buttonStyle = {
-    width: '100%',
-    padding: '14px',
-    fontSize: '16px',
-    background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)'
-  };
-
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h1 style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #3b82f6 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        fontSize: '36px',
-        fontWeight: '900',
-        marginBottom: '10px',
-        textAlign: 'center'
-      }}>
-        {step === 'signup' ? 'Create Account' : 'Verify Email'}
-      </h1>
-      <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
-        {step === 'signup'
-          ? 'Start your fitness journey today'
-          : 'Enter the verification code sent to your email'
-        }
-      </p>
+    <div className="auth-shell">
+      <div className="auth-card">
+        <h1 className="auth-title">{step === 'signup' ? 'Create account' : 'Verify email'}</h1>
+        <p className="auth-subtitle">
+          {step === 'signup'
+            ? 'Start tracking your workouts today'
+            : 'Enter the verification code sent to your email'}
+        </p>
 
-      {error && (
-        <div style={{
-          backgroundColor: '#fee2e2',
-          color: '#dc2626',
-          padding: '12px',
-          borderRadius: '4px',
-          marginBottom: '20px',
-          textAlign: 'center'
-        }}>
-          {error}
-        </div>
-      )}
+        {error && (
+          <div className="banner banner-error" role="alert">
+            <IconAlert />
+            <span>{error}</span>
+          </div>
+        )}
 
-      {step === 'signup' ? (
-        <form onSubmit={handleSignUp}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={inputStyle}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password (min 8 characters)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={inputStyle}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            style={inputStyle}
-            required
-          />
-          <button type="submit" style={buttonStyle} disabled={loading}>
-            {loading ? 'Creating account...' : 'Sign Up'}
-          </button>
-        </form>
-      ) : (
-        <form onSubmit={handleVerify}>
-          <input
-            type="text"
-            placeholder="Verification Code"
-            value={verificationCode}
-            onChange={(e) => setVerificationCode(e.target.value)}
-            style={inputStyle}
-            required
-          />
-          <button type="submit" style={buttonStyle} disabled={loading}>
-            {loading ? 'Verifying...' : 'Verify Email'}
-          </button>
-        </form>
-      )}
+        {step === 'signup' ? (
+          <form onSubmit={handleSignUp}>
+            <div className="field">
+              <label className="field-label" htmlFor="signup-email">Email</label>
+              <input
+                id="signup-email"
+                className="input"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="field">
+              <label className="field-label" htmlFor="signup-password">Password</label>
+              <input
+                id="signup-password"
+                className="input"
+                type="password"
+                autoComplete="new-password"
+                placeholder="Minimum 8 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="field">
+              <label className="field-label" htmlFor="signup-confirm">Confirm password</label>
+              <input
+                id="signup-confirm"
+                className="input"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+              {loading ? 'Creating account…' : 'Sign up'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerify}>
+            <div className="field">
+              <label className="field-label" htmlFor="verify-code">Verification code</label>
+              <input
+                id="verify-code"
+                className="input"
+                type="text"
+                inputMode="numeric"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+              {loading ? 'Verifying…' : 'Verify email'}
+            </button>
+          </form>
+        )}
 
-      <p style={{ textAlign: 'center', marginTop: '20px', color: '#666' }}>
-        Already have an account?{' '}
-        <Link to="/login" style={{ color: '#8b5cf6', fontWeight: 'bold' }}>
-          Sign In
-        </Link>
-      </p>
+        <p className="auth-footer">
+          Already have an account? <Link to="/login">Sign in</Link>
+        </p>
+      </div>
     </div>
   );
 }
