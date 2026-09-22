@@ -154,19 +154,19 @@ function Insights() {
         <div className="stat-card">
           <p className="stat-label">This week vs last week</p>
           <dl className="kv-list" style={{ marginTop: 'var(--space-2)' }}>
-            <div className="kv-row" style={{ padding: '0.4rem 0', background: 'transparent' }}>
+            <div className="kv-row">
               <dt>Workouts</dt>
               <dd className={week_comparison?.workout_change_percent >= 0 ? 'stat-value positive' : 'stat-value negative'} style={{ fontSize: 'var(--step-sm)' }}>
                 {week_comparison?.this_week_workouts} ({week_comparison?.workout_change_percent >= 0 ? '+' : ''}{week_comparison?.workout_change_percent?.toFixed(0)}%)
               </dd>
             </div>
-            <div className="kv-row" style={{ padding: '0.4rem 0', background: 'transparent' }}>
+            <div className="kv-row">
               <dt>Duration</dt>
               <dd className={week_comparison?.duration_change_percent >= 0 ? 'stat-value positive' : 'stat-value negative'} style={{ fontSize: 'var(--step-sm)' }}>
                 {week_comparison?.this_week_duration} min ({week_comparison?.duration_change_percent >= 0 ? '+' : ''}{week_comparison?.duration_change_percent?.toFixed(0)}%)
               </dd>
             </div>
-            <div className="kv-row" style={{ padding: '0.4rem 0', background: 'transparent' }}>
+            <div className="kv-row">
               <dt>Calories</dt>
               <dd className={week_comparison?.calories_change_percent >= 0 ? 'stat-value positive' : 'stat-value negative'} style={{ fontSize: 'var(--step-sm)' }}>
                 {week_comparison?.this_week_calories} cal ({week_comparison?.calories_change_percent >= 0 ? '+' : ''}{week_comparison?.calories_change_percent?.toFixed(0)}%)
