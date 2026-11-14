@@ -1,0 +1,28 @@
+{
+  "name": "fittrack-frontend",
+  "version": "1.0.0",
+  "description": "FitTrack web app: product scope, UX, React UI for logging, insights and recommendations",
+  "capabilities": [
+    "react",
+    "javascript",
+    "ui-design",
+    "ux",
+    "design-system",
+    "accessibility",
+    "amplify-auth",
+    "charts",
+    "product-specs",
+    "jest-rtl"
+  ],
+  "contact": {
+    "repo": "bshaver3/fitness-tracker",
+    "labels": [
+      "squad"
+    ]
+  },
+  "accepts": [
+    "issues",
+    "prs"
+  ],
+  "skills": []
+}

@@ -1,0 +1,63 @@
+{
+  "schema": "squad-agent-provenance/v1",
+  "schema_version": 1,
+  "revision": 7,
+  "generated_at": "2026-11-14T18:04:14.725Z",
+  "agents": {
+    "lead": {
+      "display_name": "Lead",
+      "persistent_name": "Lead",
+      "role": "Lead / Architect",
+      "universe": "cli-cast",
+      "status": "active",
+      "created_at": "2026-11-14T18:04:13.788Z",
+      "updated_at": "2026-11-14T18:04:13.788Z"
+    },
+    "product": {
+      "display_name": "Product",
+      "persistent_name": "Product",
+      "role": "Product Manager",
+      "universe": "cli-cast",
+      "status": "active",
+      "created_at": "2026-11-14T18:04:13.973Z",
+      "updated_at": "2026-11-14T18:04:13.973Z"
+    },
+    "designer": {
+      "display_name": "Designer",
+      "persistent_name": "Designer",
+      "role": "UI/UX Designer",
+      "universe": "cli-cast",
+      "status": "active",
+      "created_at": "2026-11-14T18:04:14.160Z",
+      "updated_at": "2026-11-14T18:04:14.160Z"
+    },
+    "frontend": {
+      "display_name": "Frontend",
+      "persistent_name": "Frontend",
+      "role": "Frontend Developer",
+      "universe": "cli-cast",
+      "status": "active",
+      "created_at": "2026-11-14T18:04:14.350Z",
+      "updated_at": "2026-11-14T18:04:14.350Z"
+    },
+    "tester": {
+      "display_name": "Tester",
+      "persistent_name": "Tester",
+      "role": "Test Engineer",
+      "universe": "cli-cast",
+      "status": "active",
+      "created_at": "2026-11-14T18:04:14.532Z",
+      "updated_at": "2026-11-14T18:04:14.532Z"
+    },
+    "docs": {
+      "display_name": "Docs",
+      "persistent_name": "Docs",
+      "role": "Technical Writer",
+      "universe": "cli-cast",
+      "status": "active",
+      "created_at": "2026-11-14T18:04:14.725Z",
+      "updated_at": "2026-11-14T18:04:14.725Z"
+    }
+  },
+  "transaction_id": "4a8b3856-ab99-484c-af50-31ace741b12d"
+}
