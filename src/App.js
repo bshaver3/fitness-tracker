@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './AuthContext';
 import { ToastProvider } from './ToastContext';
 import ProtectedRoute from './ProtectedRoute';
 import Home from './Home';
+import FoodTracker from './FoodTracker';
 import Profile from './Profile';
 import Goals from './Goals';
 import Insights from './Insights';
@@ -16,6 +17,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointEleme
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home' },
+  { to: '/food', label: 'Food' },
   { to: '/goals', label: 'Goals' },
   { to: '/insights', label: 'Insights' },
   { to: '/profile', label: 'Profile' },
@@ -68,6 +70,11 @@ function AppContent() {
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/food" element={
+            <ProtectedRoute>
+              <FoodTracker />
             </ProtectedRoute>
           } />
           <Route path="/goals" element={
