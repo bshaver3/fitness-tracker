@@ -45,6 +45,8 @@ Add or edit rows here only when their agent names also exist in the casting regi
 | Situation | Action |
 |-----------|--------|
 | Work belongs to the backend repo | Lead runs `squad delegate fittrack-backend "<request + acceptance criteria>"`. Never edit `../fitness-backend` from this squad. |
-| Incoming `[cross-squad]` issue | Lead triages it like any `squad` issue and replies on the issue when done. |
+| Incoming `[cross-squad]` issue | Lead triages it like any `squad` issue and starts work at once. No owner approval. |
+| Your work unblocks an issue in `bshaver3/Fitness-backend` | Comment there with branch name and summary, then `gh issue edit <n> --repo bshaver3/Fitness-backend --remove-label status:blocked`. |
+| Work finished, PR open and reviewed | PR body has `Closes #N`. Label the issue `status:on-hold`. Do not close it. |
 | API contract change | Follow the `fe-be-contract` skill (`.squad/skills/fe-be-contract/SKILL.md`). |
 | Quick question about the other repo | Read `../fitness-backend` (read-only), or ask through `copilot -C ../fitness-backend --agent squad -p "<question>"`. |
