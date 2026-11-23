@@ -1,17 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { Amplify } from 'aws-amplify';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import awsconfig from './aws-exports';
+import { getAmplifyAuthConfig } from './amplifyAuthConfig';
 
 const mockAuth = ['1', 'true', 'yes', 'on'].includes(
   (process.env.REACT_APP_MOCK_AUTH || '').trim().toLowerCase()
 );
 
 if (!mockAuth) {
-  const { Amplify } = require('aws-amplify');
-  const awsconfig = require('./aws-exports').default;
-  Amplify.configure(awsconfig);
+  Amplify.configure(getAmplifyAuthConfig(awsconfig));
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
