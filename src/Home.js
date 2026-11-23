@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from './api';
 import { useToast } from './ToastContext';
 import ConfirmDialog from './ConfirmDialog';
+import FoodTracker from './FoodTracker';
 import { IconTrash, IconCheck } from './Icons';
 import './App.css';
 
@@ -337,6 +338,8 @@ function Home() {
           {submitting ? 'Logging…' : 'Log workout'}
         </button>
       </form>
+
+      <FoodTracker embedded />
 
       {pastPlannedWorkouts.length > 0 && (
         <>
