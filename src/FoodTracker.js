@@ -13,6 +13,31 @@ function getLocalDateString(date = new Date()) {
 
 const EMPTY_ENTRY = { name: '', calories: '' };
 
+function normalizeDailySummary(data, date) {
+  if (!data || typeof data !== 'object') {
+    return {
+      date,
+      entries: [],
+      total_calories: 0,
+      target_calories: null,
+      remaining_calories: null,
+      over_target_calories: null,
+      status: 'no_target'
+    };
+  }
+
+  return {
+    ...data,
+    date: typeof data.date === 'string' ? data.date : date,
+    entries: Array.isArray(data.entries) ? data.entries : [],
+    total_calories: Number.isFinite(data.total_calories) ? data.total_calories : 0,
+    target_calories: data.target_calories ?? null,
+    remaining_calories: data.remaining_calories ?? null,
+    over_target_calories: data.over_target_calories ?? null,
+    status: typeof data.status === 'string' ? data.status : 'no_target'
+  };
+}
+
 function FoodTracker({ embedded = false }) {
   const { showToast } = useToast();
   const today = getLocalDateString();
@@ -39,10 +64,16 @@ function FoodTracker({ embedded = false }) {
 
     api.get('/food-entries/daily', { params: { date: selectedDate } })
       .then((response) => {
-        if (active) setSummary(response.data);
+        if (active) setSummary(normalizeDailySummary(response.data, selectedDate));
       })
-      .catch(() => {
-        if (active) setLoadError('Could not load this day’s food entries. Please try again.');
+      .catch((error) => {
+        if (active) {
+          if (error.response?.status === 404) {
+            setSummary(normalizeDailySummary(null, selectedDate));
+          } else {
+            setLoadError('Could not load this day’s food entries. Please try again.');
+          }
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
