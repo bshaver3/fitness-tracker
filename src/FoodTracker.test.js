@@ -160,6 +160,21 @@ test.each([
   expect(await screen.findByText(text)).toBeInTheDocument();
 });
 
+test('shows an unavailable comparison for unknown API status even when calories happen to match', async () => {
+  api.get.mockResolvedValue({
+    data: makeSummary({
+      total_calories: 2000,
+      target_calories: 2000,
+      status: 'unrecognized'
+    })
+  });
+
+  await renderFoodTracker();
+
+  expect(await screen.findByText('Target comparison unavailable.')).toBeInTheDocument();
+  expect(screen.queryByText('You are at your daily target.')).not.toBeInTheDocument();
+});
+
 test('supports setting and removing an explicitly chosen target, including the unset state', async () => {
   const user = userEvent;
   api.get
@@ -180,6 +195,22 @@ test('supports setting and removing an explicitly chosen target, including the u
 
   expect(await screen.findByText('Not set')).toBeInTheDocument();
   expect(api.delete).toHaveBeenCalledWith('/food-target');
+});
+
+test('rejects a daily target above the backend maximum with a specific correction message', async () => {
+  const user = userEvent;
+  await renderFoodTracker();
+  await screen.findByText('Not set');
+
+  const targetInput = screen.getByLabelText('Target (kcal)');
+  expect(targetInput).toHaveAttribute('max', '10000');
+  await user.type(targetInput, '10001');
+  await user.click(screen.getByRole('button', { name: 'Set target' }));
+
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'Daily target must be a whole number from 1 to 10,000 kcal. Enter a value within this range.'
+  );
+  expect(api.put).not.toHaveBeenCalled();
 });
 
 test('shows a recoverable load error and retries the selected day', async () => {

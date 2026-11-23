@@ -50,6 +50,32 @@ Every browser surface is themed from the palette: `::selection`, the WebKit scro
 - **Insights** (`src/Insights.js`) — stat row, two Chart.js line charts (frequency, calories) recolored to the ember/success palette, workout-type doughnut, consistency stats and weight progress as key/value panels rather than another card grid.
 - **Profile** (`src/Profile.js`) — long settings form using the shared field/input classes throughout.
 
+### Home daily food log
+
+Keep the existing workout log first in Home's short-session hierarchy. Place the daily food log directly after the workout quick-log area and before workout history, as one compact section using the established panel, form, list-row, and feedback patterns. It is a personal log, not a nutrition-advice surface.
+
+**Hierarchy and interaction**
+
+1. A section heading identifies the daily food log. A date control shows the selected local calendar date, defaults to today, and lets the user move among today and past dates. Do not offer future dates.
+2. Show the selected day's intake total prominently, followed by the user's explicitly set daily target and a plainly labeled comparison. Below target, show the amount remaining; above target, show the amount over target. At an exact match, state “At target.” Keep the comparison understandable without color.
+3. Keep a quick-add form immediately available: food name and a positive whole-number calorie amount in kcal, with a clear add action. New entries use the selected date. Each entry row shows its name and kcal amount with edit and delete actions. Editing uses the same two fields and preserves the selected day.
+4. When a target is set, provide a quiet “Edit target” action. With no target, show the intake total and an unobtrusive “Set daily target” prompt; never display a default, recommendation, or inferred target. Setting or editing asks the user for one positive whole-number target in kcal.
+
+**States**
+
+- **Loading:** Keep the date and section heading visible; use the existing skeleton pattern for the total and entry rows. Do not show a stale day's entries as if they belonged to the newly selected date.
+- **Empty day:** Show a zero intake total and a concise invitation to add the first food entry; keep quick-add available. The no-target treatment remains independent of whether the day has entries.
+- **Saving:** Indicate progress on the active add, edit, or target action and prevent duplicate submission. Preserve entered values until the save succeeds; do not present an entry or target as saved before confirmation.
+- **Recoverable error:** Give a concise, actionable inline message near the affected content or form, preserve the user's draft, and offer retry where appropriate. A failed save must not be presented as success. Keep already loaded entries visible when only a mutation fails.
+- **Confirm delete:** Use the shared confirm dialog pattern and identify the entry being removed. Cancel is the safe default and leaves the entry and total unchanged; confirm removes it only after the operation succeeds.
+
+**Responsive behavior and accessibility**
+
+- On narrow screens, keep the total and comparison stacked and readable; let the date controls wrap without horizontal scrolling. Stack the two quick-add fields and make the primary action full-width if needed. Entry rows may wrap actions beneath the name and amount, with comfortable touch targets.
+- Use a semantic section heading, explicitly associated labels for both entry fields and the target field, and visible kcal units. Make date navigation and row actions keyboard-operable with descriptive accessible names.
+- Move focus into the delete confirmation on open, support Escape to cancel, and return focus to the initiating delete action when it closes. Announce loading completion, save outcomes, and recoverable errors through an appropriate live region; do not rely on color alone for remaining/over-target status.
+- Preserve visible focus styling and sufficient contrast using existing tokens. Do not add nutrition fields, advice, food suggestions, or provisional API details to the interface specification.
+
 ## Verification
 
 - Mechanical detector (`impeccable detect --json`) run across all changed `.css`/`.js` — one finding (progress bar animating `width`, a layout-thrash antipattern) found and fixed by switching to `transform: scaleX`; a clean re-run followed.

@@ -13,7 +13,7 @@ function getLocalDateString(date = new Date()) {
 
 const EMPTY_ENTRY = { name: '', calories: '' };
 
-function FoodTracker() {
+function FoodTracker({ embedded = false }) {
   const { showToast } = useToast();
   const today = getLocalDateString();
   const [selectedDate, setSelectedDate] = useState(today);
@@ -159,8 +159,8 @@ function FoodTracker() {
   const handleTargetSubmit = async (event) => {
     event.preventDefault();
     const calories = Number(targetValue);
-    if (!Number.isInteger(calories) || calories < 1) {
-      setTargetError('Daily target must be a positive whole number of calories.');
+    if (!Number.isInteger(calories) || calories < 1 || calories > 10000) {
+      setTargetError('Daily target must be a whole number from 1 to 10,000 kcal. Enter a value within this range.');
       return;
     }
 
@@ -181,21 +181,29 @@ function FoodTracker() {
     if (!summary || summary.target_calories == null) {
       return 'Set a daily target to compare your intake.';
     }
-    if (summary.status === 'remaining') {
+    if (summary.status === 'remaining' && Number.isFinite(summary.remaining_calories)) {
       return `${summary.remaining_calories} calories remaining`;
     }
-    if (summary.status === 'over_target') {
+    if (summary.status === 'over_target' && Number.isFinite(summary.over_target_calories)) {
       return `${summary.over_target_calories} calories over target`;
     }
-    return 'You are at your daily target.';
+    if (summary.status === 'on_target') {
+      return 'You are at your daily target.';
+    }
+    return 'Target comparison unavailable.';
   };
 
-  return (
-    <main className="app-main food-tracker">
-      <header className="page-header">
-        <h1 className="page-title">Daily calories</h1>
-        <p className="page-subtitle">Log what you ate and compare it with your own daily target.</p>
-      </header>
+  const content = (
+    <>
+      {embedded ? (
+        <h2 className="section-heading">Daily food log</h2>
+      ) : (
+        <header className="page-header">
+          <h1 className="page-title">Daily calories</h1>
+          <p className="page-subtitle">Log what you ate and compare it with your own daily target.</p>
+        </header>
+      )}
+      <p className="food-disclaimer">For personal tracking only—not medical or nutrition advice.</p>
 
       <section className="food-date-panel" aria-label="Selected day">
         <label className="field-label" htmlFor="food-date">Choose a date</label>
@@ -246,10 +254,12 @@ function FoodTracker() {
                   name="target"
                   type="number"
                   min="1"
+                  max="10000"
                   step="1"
                   value={targetValue}
                   onChange={(event) => { setTargetValue(event.target.value); setTargetError(''); }}
                   placeholder="Enter a target you choose"
+                  aria-describedby={targetError ? 'food-target-error' : undefined}
                 />
               </div>
               <div className="food-target-actions">
@@ -267,7 +277,7 @@ function FoodTracker() {
                   </button>
                 )}
               </div>
-              {targetError && <p className="food-form-error" role="alert">{targetError}</p>}
+              {targetError && <p id="food-target-error" className="food-form-error" role="alert">{targetError}</p>}
             </form>
           </section>
 
@@ -368,8 +378,12 @@ function FoodTracker() {
         onConfirm={handleConfirmDelete}
         onCancel={() => setConfirmTarget(null)}
       />
-    </main>
+    </>
   );
+
+  return embedded
+    ? <section className="food-tracker food-tracker--embedded" aria-label="Daily food log">{content}</section>
+    : <main className="app-main food-tracker">{content}</main>;
 }
 
 export default FoodTracker;
