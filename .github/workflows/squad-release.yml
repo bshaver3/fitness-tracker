@@ -1,8 +1,11 @@
 name: Squad Release
 
+# FitTrack: manual only. This app deploys through Amplify, so a version tag is
+# not needed on every merge. Before running it: add a `## [<version>]` entry for
+# the package.json version to CHANGELOG.md, and replace the test step below
+# (the repo's tests are Jest under src/, not test/*.test.cjs).
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
