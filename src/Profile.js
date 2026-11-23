@@ -36,7 +36,7 @@ function Profile() {
           const profile = response.data;
           const heightInches = profile.height_inches == null
             ? ''
-            : String(Math.min(12, Math.max(0, parseInt(profile.height_inches, 10))));
+            : String(Math.min(11, Math.max(0, parseInt(profile.height_inches, 10))));
           setProfileData({
             heightFeet: profile.height_feet || '',
             heightInches,
@@ -71,17 +71,17 @@ function Profile() {
 
       const inches = Number(e.target.value);
       if (!Number.isFinite(inches)) {
-        setHeightInchesError('Enter a number from 0 to 12 for inches.');
+        setHeightInchesError('Enter a number from 0 to 11 for inches.');
         return;
       }
 
-      if (inches > 12) {
-        setHeightInchesError('Inches cannot exceed 12. Enter a value from 0 to 12.');
+      if (inches > 11) {
+        setHeightInchesError('Inches cannot exceed 11. Enter a value from 0 to 11.');
         return;
       }
 
       if (inches < 0) {
-        setHeightInchesError('Inches cannot be below 0. Enter a value from 0 to 12.');
+        setHeightInchesError('Inches cannot be below 0. Enter a value from 0 to 11.');
         return;
       }
 
@@ -96,8 +96,8 @@ function Profile() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const inches = Number(profileData.heightInches);
-    if (profileData.heightInches !== '' && (!Number.isFinite(inches) || inches < 0 || inches > 12)) {
-      setHeightInchesError('Enter inches between 0 and 12.');
+    if (profileData.heightInches !== '' && (!Number.isFinite(inches) || inches < 0 || inches > 11)) {
+      setHeightInchesError('Enter inches between 0 and 11.');
       return;
     }
     setSaving(true);
@@ -181,7 +181,7 @@ function Profile() {
               aria-invalid={heightInchesError ? 'true' : 'false'}
               aria-describedby={heightInchesError ? 'heightInchesError' : undefined}
               min="0"
-              max="12"
+              max="11"
               step="1"
             />
           </div>

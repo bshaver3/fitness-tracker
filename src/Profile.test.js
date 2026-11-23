@@ -33,7 +33,7 @@ beforeEach(() => {
   api.post.mockResolvedValue({ data: {} });
 });
 
-test('clamps height inches above 12 and accepts 12', async () => {
+test('clamps height inches above 11 and accepts 11', async () => {
   render(
     <Profile />
   );
@@ -41,12 +41,12 @@ test('clamps height inches above 12 and accepts 12', async () => {
   await waitFor(() => expect(api.get).toHaveBeenCalledWith('/profile'));
   const inches = screen.getByRole('spinbutton', { name: 'Height (inches)' });
 
-  expect(inches).toHaveAttribute('max', '12');
-  fireEvent.change(inches, { target: { value: '13' } });
-  expect(inches).toHaveValue(null);
-  expect(screen.getByRole('alert')).toHaveTextContent('Inches cannot exceed 12');
-
+  expect(inches).toHaveAttribute('max', '11');
   fireEvent.change(inches, { target: { value: '12' } });
-  expect(inches).toHaveValue(12);
+  expect(inches).toHaveValue(null);
+  expect(screen.getByRole('alert')).toHaveTextContent('Inches cannot exceed 11');
+
+  fireEvent.change(inches, { target: { value: '11' } });
+  expect(inches).toHaveValue(11);
   await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
 });
