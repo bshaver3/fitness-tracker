@@ -11,6 +11,7 @@ function Profile() {
   const navigate = useNavigate();
   const [isNewProfile, setIsNewProfile] = useState(!profileComplete);
   const [saving, setSaving] = useState(false);
+  const [heightInchesError, setHeightInchesError] = useState('');
   const [profileData, setProfileData] = useState({
     heightFeet: '',
     heightInches: '',
@@ -33,9 +34,12 @@ function Profile() {
       .then(response => {
         if (response.data && Object.keys(response.data).length > 0) {
           const profile = response.data;
+          const heightInches = profile.height_inches == null
+            ? ''
+            : String(Math.min(12, Math.max(0, parseInt(profile.height_inches, 10))));
           setProfileData({
             heightFeet: profile.height_feet || '',
-            heightInches: profile.height_inches || '',
+            heightInches,
             currentWeight: profile.current_weight || '',
             age: profile.age || '',
             sex: profile.sex || '',
@@ -58,11 +62,44 @@ function Profile() {
   }, []);
 
   const handleChange = (e) => {
+    if (e.target.name === 'heightInches') {
+      if (e.target.value === '') {
+        setHeightInchesError('');
+        setProfileData({ ...profileData, heightInches: '' });
+        return;
+      }
+
+      const inches = Number(e.target.value);
+      if (!Number.isFinite(inches)) {
+        setHeightInchesError('Enter a number from 0 to 12 for inches.');
+        return;
+      }
+
+      if (inches > 12) {
+        setHeightInchesError('Inches cannot exceed 12. Enter a value from 0 to 12.');
+        return;
+      }
+
+      if (inches < 0) {
+        setHeightInchesError('Inches cannot be below 0. Enter a value from 0 to 12.');
+        return;
+      }
+
+      setHeightInchesError('');
+      setProfileData({ ...profileData, heightInches: e.target.value });
+      return;
+    }
+
     setProfileData({ ...profileData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const inches = Number(profileData.heightInches);
+    if (profileData.heightInches !== '' && (!Number.isFinite(inches) || inches < 0 || inches > 12)) {
+      setHeightInchesError('Enter inches between 0 and 12.');
+      return;
+    }
     setSaving(true);
 
     // Convert to backend field names (user_id is set by backend from auth token)
@@ -133,6 +170,7 @@ function Profile() {
               required={isNewProfile}
             />
             <input
+              id="heightInches"
               className="input"
               name="heightInches"
               type="number"
@@ -140,8 +178,23 @@ function Profile() {
               onChange={handleChange}
               placeholder="Inches"
               aria-label="Height (inches)"
+              aria-invalid={heightInchesError ? 'true' : 'false'}
+              aria-describedby={heightInchesError ? 'heightInchesError' : undefined}
+              min="0"
+              max="12"
+              step="1"
             />
           </div>
+          {heightInchesError && (
+            <p
+              id="heightInchesError"
+              className="field-hint"
+              role="alert"
+              style={{ color: 'var(--danger-600)', marginBottom: 0 }}
+            >
+              {heightInchesError}
+            </p>
+          )}
         </div>
 
         <div className="field">
