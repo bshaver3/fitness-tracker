@@ -231,3 +231,15 @@ test('shows a recoverable load error and retries the selected day', async () => 
   });
   expect(await screen.findByText('No food logged for this day yet')).toBeInTheDocument();
 });
+
+test('treats an empty-day 404 as zero entries instead of a load error', async () => {
+  api.get.mockRejectedValueOnce({
+    response: { status: 404 }
+  });
+
+  await renderFoodTracker();
+
+  expect(await screen.findByText('No food logged for this day yet')).toBeInTheDocument();
+  expect(screen.queryByText('Could not load this day’s food entries. Please try again.')).not.toBeInTheDocument();
+  expect(screen.getByText('0')).toBeInTheDocument();
+});
